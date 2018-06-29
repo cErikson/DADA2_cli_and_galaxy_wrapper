@@ -1,4 +1,11 @@
 #!/usr/bin/env Rscript
+################################################################################
+# Title: dada2_filter.R
+# Discription: A wrapper for DADA2 filter
+# Author: Christian Erikson
+# GitHub: https://github.com/cErikson/DADA2_cli_and_galaxy_wrapper
+# Date: 6/26/18
+################################################################################
 packages = c("dada2", "argparse")
 if (any(!(packages %in% installed.packages()[,"Package"]))) stop(sprintf('These packages are required: %s', packages[!(packages %in% installed.packages()[,"Package"])]))
 library(dada2)

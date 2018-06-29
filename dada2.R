@@ -2,6 +2,7 @@
 ################################################################################
 # Title: Dada2_ASVTable
 # Author: Christian Erikson/Nicholas Bense
+# GitHub: https://github.com/cErikson/DADA2_cli_and_galaxy_wrapper
 # Date: 6/26/18
 # Description: R script to create Amplicon Sequence Variant Tables for 16s and ITS 
 # microbial diversity surveys. These can be used for taxonomic alignment downstream.
