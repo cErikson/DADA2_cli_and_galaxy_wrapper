@@ -12,7 +12,7 @@ library(argparse)
 
 parser <- ArgumentParser()
 	parser$add_argument("asv_table",type="character", help="Name of (or path to) the ASV table output from DADA2. In R matrix format. aka first feild of col names is missing")
-	parser$add_argument("output",default="taxa.tav",type="character",help="Name of (or path to) the output BIOM file.")
+	parser$add_argument("output",default="taxa.tav",type="character",help="Name of (or path to) the output taxa table.")
 	parser$add_argument("-t", "--taxa_train", nargs='+', type="character", help="The path to tone or more taxa trainning file(s)")
 	parser$add_argument("-s","--species_train",default=FALSE,nargs='+', type="character", help="The path to  species training file")
 
