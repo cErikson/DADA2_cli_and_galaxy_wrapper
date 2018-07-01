@@ -1,0 +1,64 @@
+<tool id="dada2biom" name="Convert DADA2 Output to BIOM." version="0.1.0">
+    <requirements>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        dada2biom.R
+		#if $metadata 
+			-m $metadata 
+			-s $samp_col 
+		#end if
+		$asv 
+		$taxa 
+		$out
+    ]]></command>
+    <inputs>
+        <param type="data" name="asv" label="ASV output from DADA2" format="tsv" />
+        <param type="data" name="taxa" label="Taxa output from DADA2" format="tsv" />
+	<conditional name="metadata" >
+		<param name="metadata" type="boolean" label="Have metadata" />
+		<when value="true">
+			<param type="data" name="samp_col" label="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" optional="true" />
+			<param type="data" name="metadata" label="A TSV of metadata corasponding to the samples" />
+		</when>
+		<when value="false">
+		</when>
+	</conditional>
+    </inputs>
+    <outputs>
+	<data name="output" format="json" />
+    </outputs>
+    <tests>
+	<test>
+		<param name="asv" value="~/lab/genelab/dada2_cli"
+    <help><![CDATA[
+        usage: /home/christian/lab//genelab/dada2_cli/cli/dada2biom.R
+       [-h] [-m METADATA] [-s SAMP_COL] asv_table taxa_table output
+
+	positional arguments:
+	  asv_table             Name of (or path to) the ASV table output from DADA2.
+	                        In R matrix format. aka first feild of col names is
+        	                missing
+	  taxa_table            Name of (or path to) the taxa table file from
+	                        assign_tax
+	  output                Name of (or path to) the output BIOM file.
+	
+	optional arguments:
+	  -h, --help            show this help message and exit
+	  -m METADATA, --metadata METADATA
+	                        Name of (or path to) the metadata, samples as rows
+	  -s SAMP_COL, --samp_col SAMP_COL
+        	                Name or number of column in the metadata that uniquely
+                	        matches part of the sample name used in the ASV
+    ]]></help>
+    <citations>
+        <citation type="bibtex">
+@misc{githubGeneLab_DADA2_Paired_Pipeline,
+  author = {Erikson, Christian},
+  year = {2018},
+  title = {GeneLab_DADA2_Paired_Pipeline},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  url = {https://github.com/cErikson/GeneLab_DADA2_Paired_Pipeline},
+}</citation>
+    </citations>
+</tool>
