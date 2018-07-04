@@ -3,35 +3,32 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
         dada2biom.R
-		#if $metadata 
-			-m $metadata 
-			-s $samp_col 
-		#end if
 		$asv 
 		$taxa 
 		$out
+		#if $metadata.opts
+		-m $metadata.metadata
+		-s $metadata.samp_col 
+		#end if
     ]]></command>
     <inputs>
         <param type="data" name="asv" label="ASV output from DADA2" format="tsv" />
         <param type="data" name="taxa" label="Taxa output from DADA2" format="tsv" />
-	<conditional name="metadata" >
-		<param name="metadata" type="boolean" label="Have metadata" />
-		<when value="true">
-			<param type="data" name="samp_col" label="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" optional="true" />
-			<param type="data" name="metadata" label="A TSV of metadata corasponding to the samples" />
-		</when>
-		<when value="false">
-		</when>
-	</conditional>
+		<conditional name="metadata" >
+			<param name="opts" type="boolean" label="Have metadata" />
+			<when value="true">
+				<param type="text" name="samp_col" label="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" optional="true" />
+				<param type="data" name="metadata" format="tsv" label="A TSV of metadata corasponding to the samples" />
+			</when>
+			<when value="false">
+			</when>
+		</conditional>
     </inputs>
-    <outputs>
-	<data name="output" format="json" />
+	<outputs>
+		<data name="output" format="json" />
     </outputs>
-    <tests>
-	<test>
-		<param name="asv" value="~/lab/genelab/dada2_cli"
     <help><![CDATA[
-        usage: /home/christian/lab//genelab/dada2_cli/cli/dada2biom.R
+       usage: /home/christian/lab//genelab/dada2_cli/cli/dada2biom.R
        [-h] [-m METADATA] [-s SAMP_COL] asv_table taxa_table output
 
 	positional arguments:

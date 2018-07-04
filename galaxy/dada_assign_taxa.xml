@@ -1,57 +1,52 @@
-<tool id="dada_assign_taxa" name="Assign Taxaonomic information to from a ASV file" version="0.1.0">
+<tool id="dada2_assign_taxa" name="Assign Taxaonomic information to from a ASV file" version="0.1.0">
     <requirements>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-        dada_assign_taxa.R -t $taxa_train -s $species_train $asv $output
+		dada_assign_taxa.R 
+		"$asv"
+		"$taxa_tsv"
+		-t "$taxa_train"
+		#if $species_train is not None;
+			-s "$species_train" 
+		#end if
+		
     ]]></command>
     <inputs>
-        <param type="data" name="taxa_train" format="" />
-        <param type="data" name="taxa_train" format="" />
-        <param type="data" name="taxa_train" format="" />
+		<param type="data" name="asv" format="tsv" label="ASV Table" help="ASV table from DADA2" />
+        <param type="data" name="taxa_train" format="fa,fa.gz,fasta,fasta.gz" />
+		<param type="data" optional="true" name="species_train" format="fa,fa.gz,fasta,fasta.gz" />
+		<param name="minboot" type="integer" value="50" />
+		<param name="tryrc" type="boolean" value="false" />
+		<param name="allowmultiple" type="boolean" value="false" />
     </inputs>
     <outputs>
+		<data name="taxa_tsv" format="tsv" />
     </outputs>
     <help><![CDATA[
-usage: cli/dada2_assign_tax.R [-h] [-t TAXA_TRAIN [TAXA_TRAIN ...]]
-                              [-s SPECIES_TRAIN [SPECIES_TRAIN ...]]
-                              [--minBoot MINBOOT] [--tryRC TRYRC]
-                              [--outputBootstraps OUTPUTBOOTSTRAPS]
-                              [--taxLevels TAXLEVELS]
-                              [--allowMultiple ALLOWMULTIPLE]
-                              [--multithread MULTITHREAD] [--verbose VERBOSE]
-                              asv_table output
-
-positional arguments:
   asv_table             Name of (or path to) the ASV table output from DADA2.
                         In R matrix format. aka first feild of col names is                      
                         missing                                                                  
-  output                Name of (or path to) the output taxa table.                              
-                                                                                                 
-optional arguments:                                                                              
-  -h, --help            show this help message and exit                                          
-  -t TAXA_TRAIN [TAXA_TRAIN ...], --taxa_train TAXA_TRAIN [TAXA_TRAIN ...]                       
-                        The path to tone or more taxa trainning file(s)                          
-  -s SPECIES_TRAIN [SPECIES_TRAIN ...], --species_train SPECIES_TRAIN [SPECIES_TRAIN ...]        
+  output                Name of (or path to) the output taxa table.                                                                                                  
+  TAXA_TRAIN            The path to tone or more taxa trainning file(s)   
+  
+  optional arguments:
+  
+  SPECIES_TRAIN   
                         The path to species training file
-  --minBoot MINBOOT     (Optional). Default 50. The minimum bootstrap
+  MINBOOT               
+                        (Optional). Default 50. The minimum bootstrap
                         confidence for assigning a taxonomic level.
-  --tryRC TRYRC         (Optional). Default FALSE. If TRUE, the reverse-
+  TRYRC                 
+                        (Optional). Default FALSE. If TRUE, the reverse-
                         complement of each sequences will be used for
                         classification if it is a better match to the
                         reference sequences than the forward sequence.
-  --outputBootstraps OUTPUTBOOTSTRAPS
-                        (Optional). Default FALSE. If TRUE, bootstrap values
-                        will be retained in an integer matrix. A named list
-                        containing the assigned taxonomies (named "taxa") and
-                        the bootstrap values (named "boot") will be returned.
-                        Minimum bootstrap confidence filtering still takes
-                        place, to see full taxonomy set minBoot=0
-  --taxLevels TAXLEVELS
+  TAXLEVELS
                         (Optional). Default is <Kingdom Phylum Class Order
                         Family Genus Species>. The taxonomic levels being
                         assigned. Truncates if deeper levels not present in
                         training fasta.
-  --allowMultiple ALLOWMULTIPLE
+  ALLOWMULTIPLE
                         (Optional). Default FALSE. Defines the behavior when
                         multiple exact matches against different species are
                         returned. By default only unambiguous identifications
@@ -59,13 +54,14 @@ optional arguments:
                         exactly matched species is returned. If an integer is
                         provided, multiple identifications up to that many are
                         returned as a concatenated string.
-  --multithread MULTITHREAD
+  MULTITHREAD
                         (Optional). Default is FALSE. If TRUE, multithreading
                         is enabled and the number of available threads is
                         automatically determined. If an integer is provided,
                         the number of threads to use is set by passing the
                         argument on to setThreadOptions.
-  --verbose VERBOSE     (Optional). Default FALSE. If TRUE, print status to
+  VERBOSE              
+                        (Optional). Default FALSE. If TRUE, print status to
                         standard output
     ]]></help>
     <citations>

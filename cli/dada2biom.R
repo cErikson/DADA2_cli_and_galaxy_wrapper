@@ -24,6 +24,7 @@ if(any(args$metadata != F) && !file.exists(args$metadata)) stop('The metadata fi
 if(!file.exists(args$asv_table)) stop('The asv table file does not exist')
 if(!file.exists(args$taxa_table)) stop('The taxa table file does not exist')
 
+print(args$samp_col)
 library(biom)
 
 # read in all the files
@@ -50,7 +51,6 @@ if(args$metadata != F){
 	}
 	if(any(duplicated(ord))) stop(sprintf('The metadata column did not uniquely match the sample names: %s\n',metadata[[args$samp_col]][ord[duplicated(ord)]]))
 	metadata = metadata[ ord, ]
-	print(metadata)
 	if(nrow(metadata)!=nrow(asv)) stop(sprintf('After selecting the metadata based on %s, the number of samples in the ASV does not match the metadata',args$samp_col))
 	
 }
