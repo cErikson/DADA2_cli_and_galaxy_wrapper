@@ -5,30 +5,82 @@
   <!--<version_command></version_command> -->
   <command><![CDATA[
 dada2.R
-#if $single_or_paired.opts is "paired_collection":
-	-f "${' '.join(map(str, $single_or_paired.fq_input.forward))}"
-	-r "${' '.join(map(str, $single_or_paired.fq_input.reverse))}"
-	--sample_list "${' '.join(map(str, $single_or_paired.fq_input.forward.name))}"
-#else if $single_or_paired.opts is "paired":
-	-f "${' '.join(map(str, $single_or_paired.fwd_fq))}"
-	-r "${' '.join(map(str, $single_or_paired.rev_fq))}"
-	--sample_list "${' '.join(map(str, $single_or_paired.fwd_fq.name))}"
-#else if $single_or_paired.opts is "single":
-	-f "${' '.join(map(str, $single_or_paired.fwd_fq))}"
-	--sample_list "${' '.join(map(str, $single_or_paired.fwd_fq.name))}"
+#if $single_or_paired.opts == "paired_collection":
+	-f ${' '.join(map(str, $single_or_paired.fq_input.forward))}
+	-r ${' '.join(map(str, $single_or_paired.fq_input.reverse))}
+	--samp_list ${' '.join(map(str, (x.name for x in $single_or_paired.fq_input.forward)))}
+#else if $single_or_paired.opts == "paired":
+	-f ${' '.join(map(str, $single_or_paired.fwd_fq))}
+	-r ${' '.join(map(str, $single_or_paired.rev_fq))}
+	--samp_list ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
+#else if $single_or_paired.opts == "single":
+	-f ${' '.join(map(str, $single_or_paired.fwd_fq))}
+	--samp_list ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
 #end if 
 
 #if $sample_names.opts is 'delim':
-	-s "${' '.join(map(str, $sample_names.fields))}"
-	-S "$sample_names.delim"
+	-s ${' '.join(map(str, $sample_names.fields))}
+	-S $sample_names.delim
 # else if $sample_names.opts is 'regex':
-	-R "$sample_names.regex"
+	-R $sample_names.regex
 #end if 
 
---asv_out "$asv_out"
+--asv_out $asv_out
 
-#if $nochim and $nochim is not None:
---nochim $nochim
+#if $chimrm and $chimrm is not None:
+--chimrm $chimrm
+#end if
+
+#if $adv.LEARN_READS_N and $adv.LEARN_READS_N is not None:
+--LEARN_READS_N $adv.LEARN_READS_N
+#end if
+
+#if $adv.OMEGA_A and $adv.OMEGA_A is not None:
+--OMEGA_A $adv.OMEGA_A
+#end if
+
+#if $adv.USE_QUALS and $adv.USE_QUALS is not None:
+--USE_QUALS $adv.USE_QUALS
+#end if
+
+#if $adv.USE_KMERS and $adv.USE_KMERS is not None:
+--USE_KMERS $adv.USE_KMERS
+#end if
+
+#if $adv.KDIST_CUTOFF and $adv.KDIST_CUTOFF is not None:
+--KDIST_CUTOFF $adv.KDIST_CUTOFF
+#end if
+
+#if $adv.BAND_SIZE and $adv.BAND_SIZE is not None:
+--BAND_SIZE $adv.BAND_SIZE
+#end if
+
+#if $adv.SCORE_MATRIX and $adv.SCORE_MATRIX is not None:
+--SCORE_MATRIX $adv.SCORE_MATRIX
+#end if
+
+#if $adv.GAP_PENALTY and $adv.GAP_PENALTY is not None:
+--GAP_PENALTY $adv.GAP_PENALTY
+#end if
+
+#if $adv.HOMOPOLYMER_GAP_PENALTY and $adv.HOMOPOLYMER_GAP_PENALTY is not None:
+--HOMOPOLYMER_GAP_PENALTY $adv.HOMOPOLYMER_GAP_PENALTY
+#end if
+
+#if $adv.MIN_FOLD and $adv.MIN_FOLD is not None:
+--MIN_FOLD $adv.MIN_FOLD
+#end if
+
+#if $adv.MIN_HAMMING and $adv.MIN_HAMMING is not None:
+--MIN_HAMMING $adv.MIN_HAMMING
+#end if
+
+#if $adv.MAX_CLUST and $adv.MAX_CLUST is not None:
+--MAX_CLUST $adv.MAX_CLUST
+#end if
+
+#if $adv.MAX_CONSIST and $adv.MAX_CONSIST is not None:
+--MAX_CONSIST $adv.MAX_CONSIST
 #end if
 
 ]]></command>
@@ -66,12 +118,12 @@ dada2.R
 			  <param name="delim" type="text" value="_" label="Field delimiter" help="FASTQ file." />
 		  </when>
 		  <when value="regex">
-			  <param name="regex" type="text" default="(\\w*).*(samp\\d)" name regex" help="" />
+			  <param name="regex" type="text" default="(\\w*).*(samp\\d)" help="" />
 		  </when>
 	  </conditional>
 
 	<!-- NOCHIM -->
-	<param name="nochim" type="select" multiple="false" label="This function is a convenience interface for chimera removal" help="">
+	<param name="chimrm" type="select" multiple="false" label="This function is a convenience interface for chimera removal" help="">
 		<option value="FALSE">Do not run chimera removal</option>
 		<option value="consensus">The samples in the sequence table are all pooled together for bimera identification</option>
 		<option value="pooled">The samples in a sequence table are independently checked for bimeras, and a consensus decision on each sequence variant is made</option>

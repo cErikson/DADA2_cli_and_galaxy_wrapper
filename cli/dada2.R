@@ -46,7 +46,7 @@ parser$add_argument("--VERBOSE", type= 'logical', default=TRUE, help='If TRUE pr
 
 
 # Parse arguments
-args <- parser$parse_args(c('-f', 'abc'))
+args <- parser$parse_args()
 ##### VALIDATE #####
 #Ensure the chimrm selection is valid
 if (!any(args$chimrm == c('pooled', 'consensus', 'per-sample', 'FALSE'))) stop(sprintf('%s is not a vaild chimrm option', args$chimrm))
@@ -80,7 +80,7 @@ if (any(args$samp_fields != F) && any(args$samp_list == F) && any(args$samp_rege
 	library(stringr)
 	sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_") #extract using regex
 } else if (any(args$samp_list != F)){ # GET_NAMES_FROM_LIST
-	sample.names = sample.names[order(args$fwd)]
+	sample.names = args$samp_list[order(args$fwd)]
 	if (any(args$samp_fields != F) && any(args$samp_regex == F)){ # SPLIT_LIST_NAMES_WITH_DELIM
 		sample.names = lapply(strsplit(args$samp_list, args$fields_delim), function(x){paste(x[as.integer(args$samp_fields)],collapse = args$fields_delim)})
 	} else if (any(args$samp_fields == F) && any(args$samp_regex != F)){ # LIST_WITH_REGEX
@@ -88,6 +88,8 @@ if (any(args$samp_fields != F) && any(args$samp_list == F) && any(args$samp_rege
 		sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_") #extract using regex
 	} else if (any(args$samp_fields != F) && any(args$samp_regex != F)){
 		stop('Can not use both regex and delimited at the same time for listed sample names')
+	} else if(any(args$samp_fields == F) && any(args$samp_list != F) && any(args$samp_regex == F)){
+		warning('Using raw names from sample list')
 	} else {
 		stop(sprintf('Invalid combination of --samp_feilds:%s, --samp_regex:%s, --samp_list:%s', args$samp_fields, args$samp_regex, args$samp_list))
 	}
@@ -149,11 +151,11 @@ seqtab = makeSequenceTable(dada_reads)
 write('Sequence lengths of ASVs:', stdout())
 write(table(nchar(getSequences(seqtab))), stdout())
 
-if (args$nochim != 'FALSE'){
+if (args$chimrm != 'FALSE'){
 	# Remove Chimeras
 	write('Remove Chimeras', stderr())
-	seqtab.nochim = removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
-	write.table(seqtab.nochim, file=args$asv_out, sep="\t")
+	seqtab.chimrm = removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+	write.table(seqtab.chimrm, file=args$asv_out, sep="\t")
 } else {
 	write.table(seqtab, file=args$asv_out, sep="\t")
 }
@@ -161,11 +163,11 @@ if (args$nochim != 'FALSE'){
 # Track Reads
 getN = function(x) sum(getUniques(x))
 track = data.frame(samp=unlist(sample.names), denoisedF = sapply(dadaFs, getN))
-if (as.logical(args$rev) != FALSE){
+if (args$rev != FALSE){
 	track['denoisedR'] = sapply(dadaRs, getN)
 	track['merged'] = sapply(mergers, getN)
 }
-if (as.logical(args$nochim) != F) track['nonchim'] = rowSums(seqtab.nochim)
+if (args$chimrm != F) track['nonchim'] = rowSums(seqtab.chimrm)
 # If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
 write('Reads Surviving each step', stderr())
 write.table(track, stderr())

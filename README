@@ -1,7 +1,6 @@
 # Intro
 **Command line and galaxy wrappers for DADA2**
 
-# TODO:
-in DADA2.xml for --samp_list, get names of datasets from galaxy and pass it in.
+# TODO
 Finish xml for dada2_filter.R
 Polish and fully test dada2.xml, dada2_assign_taxa.xml, dada2biom.xml

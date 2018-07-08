@@ -3,12 +3,14 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
 		dada_assign_taxa.R 
-		"$asv"
-		"$taxa_tsv"
-		-t "$taxa_train"
+		$asv
+		$taxa_tsv
+		-t $taxa_train
 		#if $species_train is not None;
-			-s "$species_train" 
+			-s $species_train
 		#end if
+		--minBoot $minboot
+		--tryRC $tryrc
 		
     ]]></command>
     <inputs>

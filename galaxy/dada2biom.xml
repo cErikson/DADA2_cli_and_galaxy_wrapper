@@ -5,16 +5,16 @@
         dada2biom.R
 		$asv 
 		$taxa 
-		$out
-		#if $metadata.opts
-		-m $metadata.metadata
-		-s $metadata.samp_col 
+		$output
+		#if $meta.opts:
+			-m $meta.metadata
+			-s $meta.samp_col 
 		#end if
     ]]></command>
     <inputs>
         <param type="data" name="asv" label="ASV output from DADA2" format="tsv" />
         <param type="data" name="taxa" label="Taxa output from DADA2" format="tsv" />
-		<conditional name="metadata" >
+		<conditional name="meta" >
 			<param name="opts" type="boolean" label="Have metadata" />
 			<when value="true">
 				<param type="text" name="samp_col" label="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" optional="true" />

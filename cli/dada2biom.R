@@ -16,7 +16,7 @@ parser <- ArgumentParser()
 	parser$add_argument("asv_table",type="character",help="Name of (or path to) the ASV table output from DADA2. In R matrix format. aka first feild of col names is missing")
 	parser$add_argument("taxa_table",type="character",help="Name of (or path to) the taxa table file from assign_tax")
 	parser$add_argument("-m", "--metadata", default=FALSE, type="character",help="Name of (or path to) the metadata, samples as rows")
-	parser$add_argument("-s", "--samp_col", default=NULL, help="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV")
+	parser$add_argument("-s", "--samp_col", default=NULL, help="Name of column in the metadata that uniquely matches part of the sample name used in the ASV")
 	parser$add_argument("output",default="biom.json",type="character",help="Name of (or path to) the output BIOM file.")
 
 args = parser$parse_args()
@@ -24,15 +24,24 @@ if(any(args$metadata != F) && !file.exists(args$metadata)) stop('The metadata fi
 if(!file.exists(args$asv_table)) stop('The asv table file does not exist')
 if(!file.exists(args$taxa_table)) stop('The taxa table file does not exist')
 
-print(args$samp_col)
 library(biom)
 
 # read in all the files
-if(args$metadata != F) metadata=read.delim(args$metadata)
+if(args$metadata != F) metadata=read.delim(args$metadata, header = T)
 asv=read.table(args$asv_table)
 taxa=read.table(args$taxa_table)
 
-if(!args$samp_col %in% colnames(metadata)) warning('The samp_col name was not found in metadata, ignore if selecting by number')
+# Check if the samp_col is numeric or text 
+if (is.na(as.numeric(args$samp_col)) && args$metadata != F){
+	if(!args$samp_col %in% colnames(metadata)){
+		write(colnames(m), stderr())
+	 	stop('The samp_col name was not found in metadata, above names were found in the file')
+	}
+} else {
+	args$samp_col = as.numeric(args$samp_col)
+	warning('The samp_col is being interpreted as a column number selection')
+}
+
 if(ncol(asv)!=ncol(asv)) stop('The length of the ASV does not match the taxa')
 if(args$metadata != F && nrow(metadata)!=nrow(asv)) warning('The number of samples in the ASV does not match the metadata')
 

@@ -30,3 +30,143 @@
         TODO: Fill in help.
     ]]></help>
 </tool>
+
+
+--prefix $prefix
+#end if
+
+#set repeat_var_2 = \'" "\'.join([ str($var.fwd) for $var in $repeat_2 ])
+-f "$repeat_var_2"
+
+
+#set repeat_var_3 = \'" "\'.join([ str($var.rev) for $var in $repeat_3 ])
+-r "$repeat_var_3"
+
+
+#set repeat_var_4 = \'" "\'.join([ str($var.samp_fields) for $var in $repeat_4 ])
+-s "$repeat_var_4"
+
+
+#set repeat_var_5 = \'" "\'.join([ str($var.fields_delim) for $var in $repeat_5 ])
+-S "$repeat_var_5"
+
+
+#if $samp_regex and $samp_regex is not None:
+--samp_regex $samp_regex
+#end if
+
+#set repeat_var_7 = \'" "\'.join([ str($var.truncQ) for $var in $repeat_7 ])
+-q "$repeat_var_7"
+
+
+#set repeat_var_8 = \'" "\'.join([ str($var.truncLen) for $var in $repeat_8 ])
+-l "$repeat_var_8"
+
+
+#set repeat_var_9 = \'" "\'.join([ str($var.trimLeft) for $var in $repeat_9 ])
+-L "$repeat_var_9"
+
+
+#set repeat_var_10 = \'" "\'.join([ str($var.maxLen) for $var in $repeat_10 ])
+-x "$repeat_var_10"
+
+
+#set repeat_var_11 = \'" "\'.join([ str($var.minLen) for $var in $repeat_11 ])
+-n "$repeat_var_11"
+
+
+#set repeat_var_12 = \'" "\'.join([ str($var.maxN) for $var in $repeat_12 ])
+-N "$repeat_var_12"
+
+
+#set repeat_var_13 = \'" "\'.join([ str($var.minQ) for $var in $repeat_13 ])
+-d "$repeat_var_13"
+
+
+#set repeat_var_14 = \'" "\'.join([ str($var.maxEE) for $var in $repeat_14 ])
+-E "$repeat_var_14"
+
+
+#if $rm.phix and $rm.phix is not None:
+--rm.phix $rm.phix
+#end if
+
+#if $primer.fwd and $primer.fwd is not None:
+--primer.fwd $primer.fwd
+#end if
+
+#if $matchIDs and $matchIDs is not None:
+--matchIDs $matchIDs
+#end if
+
+#if $id.sep and $id.sep is not None:
+--id.sep $id.sep
+#end if
+
+#if $id.field and $id.field is not None:
+--id.field $id.field
+#end if
+
+#if $multithread and $multithread is not None:
+--multithread $multithread
+#end if
+
+#if $n_reads and $n_reads is not None:
+--n_reads $n_reads
+#end if
+
+#if $verbose and $verbose is not None:
+--verbose $verbose
+#end if
+> $default]]></command>
+  <inputs>
+    <param area="false" argument="--prefix" label="Filtered file name prefix." name="prefix" optional="true" type="text" value="dada2-filter_"/>
+	<param name="fwd" type="text" label="Name/path to fastq or fastq.gz files for single end sequencing or forward reads if paired end sequencing" />
+    <repeat min="1" name="repeat_3" title="repeat_title">
+      <param area="false" argument="--rev" label="Name/path to fastq or fastq.gz files for reverse reads if paired end sequencing" name="rev" optional="true" type="text" value="false"/>
+    </repeat>
+    <repeat min="1" name="repeat_4" title="repeat_title">
+      <param argument="--samp_fields" label="The fields in the file name that should be used for sample names." name="samp_fields" optional="true" type="integer" value="false"/>
+    </repeat>
+    <repeat min="1" name="repeat_5" title="repeat_title">
+      <param area="false" argument="--fields_delim" label="The field delimiter used in the file name" name="fields_delim" optional="true" type="text" value="_"/>
+    </repeat>
+    <param area="false" argument="--samp_regex" label="Regex used to create filenames. Double escapes \\w" name="samp_regex" optional="true" type="text" value="false"/>
+    <repeat min="1" name="repeat_7" title="repeat_title">
+      <param area="false" argument="--truncQ" label="(Optional). Default 2. Truncate reads at the first instance of a quality score less than or equal to truncQ." name="truncQ" optional="true" type="text" value="2"/>
+    </repeat>
+    <repeat min="1" name="repeat_8" title="repeat_title">
+      <param area="false" argument="--truncLen" label="(Optional). Default 0 (no truncation). Truncate reads after truncLen bases. Reads shorter than this are discarded." name="truncLen" optional="true" type="text" value="0"/>
+    </repeat>
+    <repeat min="1" name="repeat_9" title="repeat_title">
+      <param area="false" argument="--trimLeft" label="(Optional). Default 0. The number of nucleotides to remove from the start of each read. If both truncLen and trimLeft are provided, filtered reads will have length truncLen-trimLeft." name="trimLeft" optional="true" type="text" value="0"/>
+    </repeat>
+    <repeat min="1" name="repeat_10" title="repeat_title">
+      <param area="false" argument="--maxLen" label="(Optional). Default Inf (no maximum). Remove reads with length greater than maxLen. maxLen is enforced before trimming and truncation." name="maxLen" optional="true" type="text" value="Inf"/>
+    </repeat>
+    <repeat min="1" name="repeat_11" title="repeat_title">
+      <param area="false" argument="--minLen" label="(Optional). Default 20. Remove reads with length less than minLen. minLen is enforced after trimming and truncation." name="minLen" optional="true" type="text" value="20"/>
+    </repeat>
+    <repeat min="1" name="repeat_12" title="repeat_title">
+      <param area="false" argument="--maxN" label="(Optional). Default 0. After truncation, sequences with more than maxN Ns will be discarded. Note that dada does not allow Ns." name="maxN" optional="true" type="text" value="0"/>
+    </repeat>
+    <repeat min="1" name="repeat_13" title="repeat_title">
+      <param area="false" argument="--minQ" label="(Optional). Default 0. After truncation, reads contain a quality score less than minQ will be discarded." name="minQ" optional="true" type="text" value="0"/>
+    </repeat>
+    <repeat min="1" name="repeat_14" title="repeat_title">
+      <param area="false" argument="--maxEE" label="(Optional). Default Inf (no EE filtering). Two are needed for pairedend. vaules After truncation, reads with higher than maxEE \'expected errors\' will be discarded. Expected errors are calculated from the nominal definition of the quality score: EE = sum(10^(-Q/10))" name="maxEE" optional="true" type="text" value="Inf"/>
+    </repeat>
+    <param area="false" argument="--rm.phix" label="(Optional). Default TRUE. If TRUE, discard reads that match against the phiX genome, as determined by isPhiX." name="rm.phix" optional="true" type="text" value="true"/>
+    <param area="false" argument="--primer.fwd" label="(Optional). Default NULL. Paired-read filtering only. A character string defining the forward primer. Only allows unambiguous nucleotides. The primer will be compared to the first len(primer.fwd) nucleotides at the start of the read. If there is not an exact match, the read is filtered out. For paired reads, the reverse read is also interrogated, and if the primer is detected on the reverse read, the forward/reverse reads are swapped." name="primer.fwd" optional="true" type="text" value="NULL"/>
+    <param area="false" argument="--matchIDs" label="(Optional). Default FALSE. Paired-read filtering only. Whether to enforce matching between the id-line sequence identifiers of the forward and reverse fastq files. If TRUE, only paired reads that share id fields (see below) are output. If FALSE, no read ID checking is done. Note: matchIDs=FALSE essentially assumes matching order between forward and reverse reads. If that matched order is not present future processing steps may break (in particular mergePairs)." name="matchIDs" optional="true" type="text" value="false"/>
+    <param area="false" argument="--id.sep" label="(Optional). Default \'\\\\s\' (white-space). Paired-read filtering only. The separator between fields in the id-line of the input fastq files. Passed to the strsplit." name="id.sep" optional="true" type="text" value="\\s"/>
+    <param area="false" argument="--id.field" label="(Optional). Default NULL (automatic detection). Paired-read filtering only. The field of the id-line containing the sequence identifier. If NULL (the default) and matchIDs is TRUE, the function attempts to automatically detect the sequence identifier field under the assumption of Illumina formatted output." name="id.field" optional="true" type="text" value="NULL"/>
+    <param area="false" argument="--multithread" label="(Optional). Default is FALSE. If TRUE, input files are filtered in parallel via mclapply. If an integer is provided, it is passed to the mc.cores argument of mclapply. Note that the parallelization here is by forking, and each process is loading another fastq file into memory. If memory is an issue, execute in a clean environment and reduce the chunk size n and/or the number of threads." name="multithread" optional="true" type="text" value="false"/>
+    <param area="false" argument="--n_reads" label="(Optional). Default 1e5. The number of records (reads) to read in and filter at any one time. This controls the peak memory requirement so that very large fastq files are supported. See FastqStreamer for details." name="n_reads" optional="true" type="text" value="100000.0"/>
+    <param area="false" argument="--verbose" label="((Optional). Default TRUE. Whether to output status messages." name="verbose" optional="true" type="text" value="true"/>
+  </inputs>
+  <outputs>
+    <data format="txt" hidden="false" name="default"/>
+  </outputs>
+  <help><![CDATA[TODO: Write help]]></help>
+</tool>
