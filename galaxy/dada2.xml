@@ -3,21 +3,30 @@
     <exit_code level="fatal" range="1:"/>
   </stdio>
   <!--<version_command></version_command> -->
-  <command><![CDATA[
-dada2.R
+  <command><![CDATA[	  
 #if $single_or_paired.opts == "paired_collection":
-	-f ${' '.join(map(str, $single_or_paired.fq_input.forward))}
-	-r ${' '.join(map(str, $single_or_paired.fq_input.reverse))}
-	--samp_list ${' '.join(map(str, (x.name for x in $single_or_paired.fq_input.forward)))}
+${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fq_input.forward), (x.name for x in $single_or_paired.fq_input.forward))))}
+${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fq_input.reverse), (x.name for x in $single_or_paired.fq_input.reverse))))}
 #else if $single_or_paired.opts == "paired":
-	-f ${' '.join(map(str, $single_or_paired.fwd_fq))}
-	-r ${' '.join(map(str, $single_or_paired.rev_fq))}
-	--samp_list ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
+${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fwd_fq), (x.name for x in $single_or_paired.fwd_fq))))}
+${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.rev_fq), (x.name for x in $single_or_paired.rev_fq))))}
 #else if $single_or_paired.opts == "single":
-	-f ${' '.join(map(str, $single_or_paired.fwd_fq))}
-	--samp_list ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
+${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fwd_fq), (x.name for x in $single_or_paired.fwd_fq))))}
 #end if 
 
+&&
+
+dada2.R
+#if $single_or_paired.opts == "paired_collection":
+-f ${' '.join(map(str, (x.name for x in $single_or_paired.fq_input.forward)))}
+-r ${' '.join(map(str, (x.name for x in $single_or_paired.fq_input.reverse)))}
+#else if $single_or_paired.opts == "paired":
+-f ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
+-r ${' '.join(map(str, (x.name for x in $single_or_paired.rev_fq)))}
+#else if $single_or_paired.opts == "single":
+-f ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
+#end if 
+	  
 #if $sample_names.opts is 'delim':
 	-s ${' '.join(map(str, $sample_names.fields))}
 	-S $sample_names.delim
@@ -123,31 +132,31 @@ dada2.R
 	  </conditional>
 
 	<!-- NOCHIM -->
-	<param name="chimrm" type="select" multiple="false" label="This function is a convenience interface for chimera removal" help="">
+	<param name="chimrm" type="select" multiple="false" label="Chimera removal." help="This function is a convenience interface for chimera removal" help="">
 		<option value="FALSE">Do not run chimera removal</option>
-		<option value="consensus">The samples in the sequence table are all pooled together for bimera identification</option>
+		<option value="consensus">DEFAULT: The samples in the sequence table are all pooled together for bimera identification</option>
 		<option value="pooled">The samples in a sequence table are independently checked for bimeras, and a consensus decision on each sequence variant is made</option>
 		<option value="per-sample">The samples in a sequence table are independently checked for bimeras, and sequence variants are removed (zeroed-out) from samples independently </option>
 	</param>
 	<!-- ADVANCED -->
-	<section name="adv" title="Advanced Options" expanded="true">
-		<param name="LEARN_READS_N" optional="true" type="integer" value="1000000" label="Default 1e6. The minimum number of reads to use for error rate learning. Samples are read into memory until at least this number of reads has been reached, or all provided samples have been read in."/>
-		<param name="OMEGA_A" optional="true" type="float" value="1e-40" label="This parameter sets the threshold for when DADA2 calls unique sequences significantly overabundant, and therefore creates a new cluster with that sequence as the center. The default value is 1e-40, which is a conservative setting to avoid making false positive inferences, but which comes at the cost of reducing the ability to identify some rare variants."/>
-		<param name="USE_QUALS" optional="true" type="boolean" value="true" label="If TRUE, the dada(...) error model takes into account the consensus quality score of the dereplicated unique sequences. If FALSE, quality scores are ignored. The default is TRUE, however if applying DADA2 to pyrosequenced data it is recommended to set USE_QUALS to FALSE, as quality scores are not informative about substitution error rates in pyrosequencing." />
-		<param name="USE_KMERS" optional="true" type="boolean" value="true" label="If TRUE, a 5-mer distance screen is performed prior to performing each pairwise alignment, and if the 5mer-distance is greater than KDIST_CUTOFF, no alignment is performed. TRUE by default." />
-		<param name="KDIST_CUTOFF" optional="true" type="float" value="0.42" label="The default value of 0.42 was chosen to screen pairs of sequences that differ by greater 10 percent, and was calibrated on Illumina sequenced 16S amplicon data. The assumption is that sequences that differ by such a large amount cannot be linked by amplicon errors (i.e. if you sequence one, you won`t get a read of other) and so careful (and costly) alignment is unnecessary." />
-		<param name="BAND_SIZE" optional="true" type="integer" value="16" label="When set, banded Needleman-Wunsch alignments are performed. Banding restricts the net cumulative number of insertion of one sequence relative to the other. The default value of BAND_SIZE is 16. If DADA is applied to marker genes with high rates of indels, such as the ITS region in fungi, the BAND_SIZE parameter should be increased. Setting BAND_SIZE to a negative number turns off banding (i.e. full Needleman-Wunsch)." />
-		<param name="SCORE_MATRIX" optional="true" type="file" label="The path to the score matrix for the Needleman-Wunsch alignment. This is a 4x4 matrix as no ambiguous nucleotides are allowed. Default is nuc44: -4 for mismatches, +5 for matches."/>
-		<param name="GAP_PENALTY" optional="true" type="integer" value="-8" label="The cost of gaps in the Needleman-Wunsch alignment. Default is -8." />
-		<param name="HOMOPOLYMER_GAP_PENALTY" optional="true" type="integer" label="The cost of gaps in homopolymer regions (&gt;=3 repeated bases). Default is NULL, which causes homopolymer gaps to be treated as normal gaps."/>
-		<param name="MIN_FOLD" optional="true" type="integer" value="1" label="The minimum fold-overabundance for sequences to form new clusters. Default value is 1, which means this criteria is ignored."/>
-		<param name="MIN_HAMMING" optional="true" type="integer" value="1" label="The minimum hamming-separation for sequences to form new clusters. Default value is 1. which means this criteria is ignored." />
-		<param name="MAX_CLUST" optional="true" type="integer" value="0" label="The maximum number of clusters. Once this many clusters have been created, the algorithm terminates regardless of whether the statistical model suggests more sample sequences exist. If set to 0 this argument is ignored. Default value is 0."/>
-		<param name="MAX_CONSIST" optional="true" type="integer" value="10" label="The maximum number of steps when selfConsist=TRUE. If convergence is not reached in MAX_CONSIST steps, the algorithm will terminate with a warning message. Default value is 10." />
+	<section name="adv" title="Advanced Options" expanded="false">
+		<param name="LEARN_READS_N" optional="true" type="integer" value="1000000" label="Number of reads to learn error from" help="Default 1e6. The minimum number of reads to use for error rate learning. Samples are read into memory until at least this number of reads has been reached, or all provided samples have been read in."/>
+		<param name="OMEGA_A" optional="true" type="float" value="1e-40" label="Omega A" help="This parameter sets the threshold for when DADA2 calls unique sequences significantly overabundant, and therefore creates a new cluster with that sequence as the center. The default value is 1e-40, which is a conservative setting to avoid making false positive inferences, but which comes at the cost of reducing the ability to identify some rare variants."/>
+		<param name="USE_QUALS" optional="true" type="boolean" value="true" label="Use Quality Info" help="If TRUE, the dada(...) error model takes into account the consensus quality score of the dereplicated unique sequences. If FALSE, quality scores are ignored. The default is TRUE, however if applying DADA2 to pyrosequenced data it is recommended to set USE_QUALS to FALSE, as quality scores are not informative about substitution error rates in pyrosequencing." />
+		<param name="USE_KMERS" optional="true" type="boolean" value="true" label="Use Kmers" help="If TRUE, a 5-mer distance screen is performed prior to performing each pairwise alignment, and if the 5mer-distance is greater than KDIST_CUTOFF, no alignment is performed. TRUE by default." />
+		<param name="KDIST_CUTOFF" optional="true" type="float" value="0.42" label="Kdist Cutoff" help="The default value of 0.42 was chosen to screen pairs of sequences that differ by greater 10 percent, and was calibrated on Illumina sequenced 16S amplicon data. The assumption is that sequences that differ by such a large amount cannot be linked by amplicon errors (i.e. if you sequence one, you won`t get a read of other) and so careful (and costly) alignment is unnecessary." />
+		<param name="BAND_SIZE" optional="true" type="integer" value="16" label="Band Size" help="When set, banded Needleman-Wunsch alignments are performed. Banding restricts the net cumulative number of insertion of one sequence relative to the other. The default value of BAND_SIZE is 16. If DADA is applied to marker genes with high rates of indels, such as the ITS region in fungi, the BAND_SIZE parameter should be increased. Setting BAND_SIZE to a negative number turns off banding (i.e. full Needleman-Wunsch)." />
+		<param name="SCORE_MATRIX" optional="true" type="file" label="Score Matrix" help="The path to the score matrix for the Needleman-Wunsch alignment. This is a 4x4 matrix as no ambiguous nucleotides are allowed. Default is nuc44: -4 for mismatches, +5 for matches."/>
+		<param name="GAP_PENALTY" optional="true" type="integer" value="-8" label="Gap Penalty" help="The cost of gaps in the Needleman-Wunsch alignment. Default is -8." />
+		<param name="HOMOPOLYMER_GAP_PENALTY" optional="true" type="integer" label="Homopolymer Gap Penalty" help="The cost of gaps in homopolymer regions (&gt;=3 repeated bases). Default is NULL, which causes homopolymer gaps to be treated as normal gaps."/>
+		<param name="MIN_FOLD" optional="true" type="integer" value="1" label="Min Fold" help="The minimum fold-overabundance for sequences to form new clusters. Default value is 1, which means this criteria is ignored."/>
+		<param name="MIN_HAMMING" optional="true" type="integer" value="1" label="minimum hamming-separation" help="The minimum hamming-separation for sequences to form new clusters. Default value is 1. which means this criteria is ignored." />
+		<param name="MAX_CLUST" optional="true" type="integer" value="0" label="Maximum number of clusters" help="The maximum number of clusters. Once this many clusters have been created, the algorithm terminates regardless of whether the statistical model suggests more sample sequences exist. If set to 0 this argument is ignored. Default value is 0."/>
+		<param name="MAX_CONSIST" optional="true" type="integer" value="10" label="Max number of selfConsist steps" help="The maximum number of steps when selfConsist=TRUE. If convergence is not reached in MAX_CONSIST steps, the algorithm will terminate with a warning message. Default value is 10." />
 	</section>
 </inputs>
   <outputs>
-	<data format= "tsv" label="Name/path to ASV table file output" name="asv_out" />
+	<data format= "tsv" label="" name="asv_out" />
   </outputs>
   <help><![CDATA[TODO: Write help]]></help>
   <citations>

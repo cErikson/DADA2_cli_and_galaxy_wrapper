@@ -18,7 +18,8 @@ parser <- ArgumentParser()
 	parser$add_argument("-m", "--metadata", default=FALSE, type="character",help="Name of (or path to) the metadata, samples as rows")
 	parser$add_argument("-s", "--samp_col", default=NULL, help="Name of column in the metadata that uniquely matches part of the sample name used in the ASV")
 	parser$add_argument("output",default="biom.json",type="character",help="Name of (or path to) the output BIOM file.")
-
+	parser$add_argument("-R","--regex", action='store',type="character",default=FALSE,help="Regex to exctract names form ASV and exact match to metadata. Double escapes \\w")
+	
 args = parser$parse_args()
 if(any(args$metadata != F) && !file.exists(args$metadata)) stop('The metadata file does not exist')
 if(!file.exists(args$asv_table)) stop('The asv table file does not exist')
@@ -53,11 +54,22 @@ taxa <- taxa[order(rownames(taxa)),]
 
 if(args$metadata != F){
 	ord=numeric()
-	for (x in metadata[[args$samp_col]]){
-		loc=grep(x, rownames(asv))
-		if (length(loc)>1) stop(sprintf('The column values are not unique to the asv table, multiple rows were matched: %s',rownames(asv)[loc]))
-		ord=c(loc, ord)
-	}
+	if (args$regex != F){
+		library(stringr)
+		asv_names = str_match(rownames(asv), args$regex)[,-1] #extract using regex
+		for (x in metadata[[args$samp_col]]){
+			loc=which(x == asv_names)
+			if (length(loc)>1) stop(sprintf('The name %s matched multipule asv rows in the asv table, a row that matched: %s\n',x, rownames(asv)[loc]))
+			ord=c(loc, ord)
+		}
+	} else {
+		for (x in metadata[[args$samp_col]]){
+			loc=grep(x, rownames(asv))
+			if (length(loc)>1) stop(sprintf('The name %s matched multipule asv rows in the asv table, a row that matched: %s\n',x, rownames(asv)[loc]))
+			ord=c(loc, ord)
+			}
+		}
+	
 	if(any(duplicated(ord))) stop(sprintf('The metadata column did not uniquely match the sample names: %s\n',metadata[[args$samp_col]][ord[duplicated(ord)]]))
 	metadata = metadata[ ord, ]
 	if(nrow(metadata)!=nrow(asv)) stop(sprintf('After selecting the metadata based on %s, the number of samples in the ASV does not match the metadata',args$samp_col))

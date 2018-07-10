@@ -19,8 +19,9 @@ parser$add_argument("-p","--prefix",type="character",default='dada2-filter_' ,he
 parser$add_argument("-f","--fwd", nargs='+', type="character",help="Name/path to fastq or fastq.gz files for single end sequencing or forward reads if paired end sequencing")
 parser$add_argument("-r","--rev", nargs='+', type="character",default=FALSE,help="Name/path to fastq or fastq.gz files for reverse reads if paired end sequencing")
 parser$add_argument("-s","--samp_fields", nargs='+', type="integer", default=FALSE, help="The fields in the file name that should be used for sample names.")
-parser$add_argument("-S","--fields_delim", nargs='+', type="character", default='_', help="The field delimiter used in the file name")
-parser$add_argument("-X","--samp_regex", action='store',type="character",default=FALSE,help="Regex used to create filenames. Double escapes \\w")
+parser$add_argument("-S","--fields_delim", type="character", default='_', help="The field delimiter used in the file name")
+parser$add_argument("-R","--samp_regex", action='store',type="character",default=FALSE,help="Regex used to create samplenames. Double escapes \\w")
+parser$add_argument("--samp_list", nargs='+', action='store',type="character", default=FALSE, help="List of sample names that are in same order as the reads, can be used in combination with -R or -s")
 
 parser$add_argument("-q", "--truncQ", nargs='+',default=2, help='(Optional). Default 2. Truncate reads at the first instance of a quality score less than or equal to truncQ.')
 parser$add_argument("-l", "--truncLen", nargs='+',default = 0, help="(Optional). Default 0 (no truncation). Truncate reads after truncLen bases. Reads shorter than this are discarded.")
@@ -43,9 +44,6 @@ parser$add_argument("-v", "--verbose", default= TRUE, help="((Optional). Default
 args <- parser$parse_args()
 
 
-#Ensure there is a sample name type
-if (sum(all(args$samp_fields != F), all(args$samp_regex != F)) != 1) stop('Provide a one option to collect sample names: -S -R') 
-
 ##### FILES #####
 fnFs = sort(args$fwd) # sort for pairing files 
 if(!all(file.exists(fnFs))) stop(sprintf("The following file does not exist: %s\n",fnFs[!file.exists(fnFs)])) # Check to see if files exist
@@ -56,23 +54,38 @@ if (all(args$rev != F)){
 	if(!all(file.exists(fnRs))) stop(sprintf("The following file does not exist: %s\n",fnRs[!file.exists(fnRs)])) # validate
 	if(any(duplicated(fnRs))) stop(sprintf("The following files are duplicated: %s\n",fnFs[!duplicated(fnRs)])) 
 	if(any(fnFs %in% fnRs || fnRs %in% fnFs)) stop(sprintf("The following files are in both read streams %s, %s,\n", fnFs[fnFs %in% fnRs], fnRs[ fnRs %in% fnFs])) 
-	print('File pairs to be filtered in DADA2:')
+	print('File pairs to be processed in DADA2:')
 	print(data.frame(fwd_files=fnFs, rev_files=fnRs)) # provide debugging
 }else{
-	print('File pairs to be filtered in DADA2:')
+	print('File pairs to be processed in DADA2:')
 	print(data.frame(fwd_files=fnFs))
 }
 
 ##### SAMPLE_NAMES #####
 study.name = args$prefix
 
-if (any(args$samp_fields != F)){
+if (any(args$samp_fields != F) && any(args$samp_list == F) && any(args$samp_regex == F)){ # EXTRACT_NAMES_FROM_READS
 	# Extract sample names, assuming filenames have format: {ds}_{resource]_{sample}_{factor}_R1-trimmed.fastq
-	sample.names = lapply(strsplit(basename(fnFs), args$fields_delim), function(x){paste(x[as.integer(args$samp_fields)],collapse = args$fields_delim)})
-} else if (args$samp_regex != F){
+	sample.names = lapply(strsplit(basename(fnFs), args$fields_delim), function(x){paste(x[as.integer(args$samp_fields)],collapse = args$fields_delim)}) # grab the delimited feilds
+} else if (any(args$samp_fields == F) && any(args$samp_list == F) && any(args$samp_regex != F)){ # EXTRACT_NAMES_WITH_REGEX
 	library(stringr)
-	sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_")
+	sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_") #extract using regex
+} else if (any(args$samp_list != F)){ # GET_NAMES_FROM_LIST
+	sample.names = args$samp_list[order(args$fwd)]
+	if (any(args$samp_fields != F) && any(args$samp_regex == F)){ # SPLIT_LIST_NAMES_WITH_DELIM
+		sample.names = lapply(strsplit(args$samp_list, args$fields_delim), function(x){paste(x[as.integer(args$samp_fields)],collapse = args$fields_delim)})
+	} else if (any(args$samp_fields == F) && any(args$samp_regex != F)){ # LIST_WITH_REGEX
+		library(stringr)
+		sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_") #extract using regex
+	} else if (any(args$samp_fields != F) && any(args$samp_regex != F)){
+		stop('Can not use both regex and delimited at the same time for listed sample names')
+	} else if(any(args$samp_fields == F) && any(args$samp_list != F) && any(args$samp_regex == F)){
+		warning('Using raw names from sample list')
+	} else {
+		stop(sprintf('Invalid combination of --samp_feilds:%s, --samp_regex:%s, --samp_list:%s', args$samp_fields, args$samp_regex, args$samp_list))
+	}
 }
+
 if (!all(!duplicated(sample.names))){
 	stop(sprintf('The following Sample names are not unique: %s\n',sample.names[!duplicated(sample.names)]))
 }

@@ -9,6 +9,9 @@
 		#if $meta.opts:
 			-m $meta.metadata
 			-s $meta.samp_col 
+			#if $meta.regex and $meta.regex is not None:
+				-R $meta.regex
+			#end if
 		#end if
     ]]></command>
     <inputs>
@@ -17,8 +20,9 @@
 		<conditional name="meta" >
 			<param name="opts" type="boolean" label="Have metadata" />
 			<when value="true">
-				<param type="text" name="samp_col" label="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" optional="true" />
 				<param type="data" name="metadata" format="tsv" label="A TSV of metadata corasponding to the samples" />
+				<param type="text" name="samp_col" label="Sample Name Column" help="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" />
+				<param type="text" name="regex" label="ASV name extraction regex." help="If left blank, the program will try to automaticlly match names based on substrings. Use this if it fails. Regex to exctract names form ASV sample names and match them exactly to to metadata samp_col. Double escapes \\w" optional="true" />
 			</when>
 			<when value="false">
 			</when>
