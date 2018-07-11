@@ -76,6 +76,8 @@ study.name = args$prefix
 if (any(args$samp_fields != F) && any(args$samp_list == F) && any(args$samp_regex == F)){ # EXTRACT_NAMES_FROM_READS
 	# Extract sample names, assuming filenames have format: {ds}_{resource]_{sample}_{factor}_R1-trimmed.fastq
 	sample.names = lapply(strsplit(basename(fnFs), args$fields_delim), function(x){paste(x[as.integer(args$samp_fields)],collapse = args$fields_delim)}) # grab the delimited feilds
+} else if (any(args$samp_fields == F) && any(args$samp_list == F) && any(args$samp_regex == F)){ # KEEP_FULL_NAMES
+	sample.names = basename(fnFs)
 } else if (any(args$samp_fields == F) && any(args$samp_list == F) && any(args$samp_regex != F)){ # EXTRACT_NAMES_WITH_REGEX
 	library(stringr)
 	sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_") #extract using regex
@@ -160,14 +162,14 @@ if (args$chimrm != 'FALSE'){
 	write.table(seqtab, file=args$asv_out, sep="\t")
 }
 
-# Track Reads
-getN = function(x) sum(getUniques(x))
-track = data.frame(samp=unlist(sample.names), denoisedF = sapply(dadaFs, getN))
-if (args$rev != FALSE){
-	track['denoisedR'] = sapply(dadaRs, getN)
-	track['merged'] = sapply(mergers, getN)
-}
-if (args$chimrm != F) track['nonchim'] = rowSums(seqtab.chimrm)
-# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
-write('Reads Surviving each step', stderr())
-write.table(track, stderr())
+# # Track Reads
+# getN = function(x) sum(getUniques(x))
+# track = data.frame(samp=unlist(sample.names), denoisedF = sapply(dadaFs, getN))
+# if (args$rev != FALSE){
+# 	track['denoisedR'] = sapply(dadaRs, getN)
+# 	track['merged'] = sapply(mergers, getN)
+# }
+# if (args$chimrm != F) track['nonchim'] = rowSums(seqtab.chimrm)
+# # If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+# write('Reads Surviving each step', stderr())
+# write.table(track, stderr())

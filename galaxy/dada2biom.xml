@@ -1,4 +1,4 @@
-<tool id="dada2biom" name="Convert DADA2 Output to BIOM." version="0.1.0">
+<tool id="dada2biom" name="DADA2 Convert to BIOM." version="0.1.0">
     <requirements>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
@@ -15,12 +15,12 @@
 		#end if
     ]]></command>
     <inputs>
-        <param type="data" name="asv" label="ASV output from DADA2" format="tsv" />
-        <param type="data" name="taxa" label="Taxa output from DADA2" format="tsv" />
+        <param type="data" name="asv" label="ASV output from DADA2" format="tabular" />
+        <param type="data" name="taxa" label="Taxa output from DADA2" format="tabular" />
 		<conditional name="meta" >
 			<param name="opts" type="boolean" label="Have metadata" />
 			<when value="true">
-				<param type="data" name="metadata" format="tsv" label="A TSV of metadata corasponding to the samples" />
+				<param type="data" name="metadata" format="tabular" label="A TSV of metadata corasponding to the samples" />
 				<param type="text" name="samp_col" label="Sample Name Column" help="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" />
 				<param type="text" name="regex" label="ASV name extraction regex." help="If left blank, the program will try to automaticlly match names based on substrings. Use this if it fails. Regex to exctract names form ASV sample names and match them exactly to to metadata samp_col. Double escapes \\w" optional="true" />
 			</when>
@@ -29,7 +29,7 @@
 		</conditional>
     </inputs>
 	<outputs>
-		<data name="output" format="json" />
+		<data name="output" label="dada2_biom" format="json" />
     </outputs>
     <help><![CDATA[
        usage: /home/christian/lab//genelab/dada2_cli/cli/dada2biom.R

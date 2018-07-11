@@ -1,4 +1,4 @@
-<tool id="DADA2.R" name="DADA2 core" version="1.0">
+<tool id="dada2_core" name="DADA2 core" version="1.0">
   <stdio>
     <exit_code level="fatal" range="1:"/>
   </stdio>
@@ -6,11 +6,15 @@
   <command><![CDATA[	  
 #if $single_or_paired.opts == "paired_collection":
 ${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fq_input.forward), (x.name for x in $single_or_paired.fq_input.forward))))}
+&&
 ${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fq_input.reverse), (x.name for x in $single_or_paired.fq_input.reverse))))}
-#else if $single_or_paired.opts == "paired":
+#end if
+#if $single_or_paired.opts == "paired":
 ${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fwd_fq), (x.name for x in $single_or_paired.fwd_fq))))}
+&&
 ${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.rev_fq), (x.name for x in $single_or_paired.rev_fq))))}
-#else if $single_or_paired.opts == "single":
+#end if
+#if $single_or_paired.opts == "single":
 ${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fwd_fq), (x.name for x in $single_or_paired.fwd_fq))))}
 #end if 
 
@@ -27,11 +31,12 @@ dada2.R
 -f ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
 #end if 
 	  
-#if $sample_names.opts is 'delim':
+#if $sample_names.opts == 'delim':
 	-s ${' '.join(map(str, $sample_names.fields))}
-	-S $sample_names.delim
-# else if $sample_names.opts is 'regex':
-	-R $sample_names.regex
+	-S $sample_names.delimiter
+#end if
+#if $sample_names.opts == 'regex':
+	-R $sample_names.pattern
 #end if 
 
 --asv_out $asv_out
@@ -48,11 +53,11 @@ dada2.R
 --OMEGA_A $adv.OMEGA_A
 #end if
 
-#if $adv.USE_QUALS and $adv.USE_QUALS is not None:
+#if $adv.USE_QUALS is not None:
 --USE_QUALS $adv.USE_QUALS
 #end if
 
-#if $adv.USE_KMERS and $adv.USE_KMERS is not None:
+#if $adv.USE_KMERS is not None:
 --USE_KMERS $adv.USE_KMERS
 #end if
 
@@ -102,14 +107,14 @@ dada2.R
 			  <option value="paired_collection">Paired-end Dataset Collection</option>
 		  </param>
 		  <when value="single">
-			  <param name="fwd_fq" type="data" format="fastq,fq,fq.gz,fastq.gz,fastq.bz2" multiple= "true" label="FASTQ/FASTA file" help="FASTQ file." />
+			  <param name="fwd_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="FASTQ/FASTA file" help="FASTQ file." />
 		  </when>
 		  <when value="paired">
-			  <param name="fwd_fq" type="data" format="fastq,fq,fq.gz,fastq.gz,fastq.bz2" multiple= "true" label="Mate pair 1" help="FASTQ file." />
-			  <param name="rev_fq" type="data" format="fastq,fq,fq.gz,fastq.gz,fastq.bz2" multiple= "true" label="Mate pair 2" help="FASTQ file." />
+			  <param name="fwd_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="Mate pair 1" help="FASTQ file." />
+			  <param name="rev_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="Mate pair 2" help="FASTQ file." />
 		  </when>
 		  <when value="paired_collection">
-			  <param name="fq_input" format="fastq,fq,fq.gz,fastq.gz,fastq.bz2" type="data_collection" collection_type="paired,list:paired" label="FASTQ Paired Dataset" help="" />
+			  <param name="fq_input" format="fastqsanger, fastqsanger.gz" type="data_collection" collection_type="paired,list:paired" label="FASTQ Paired Dataset" help="" />
 		  </when>
 	  </conditional>
 	  
@@ -124,17 +129,17 @@ dada2.R
 		  </when>
 		  <when value="delim">
 			  <param name="fields" type="text" multiple="true" value= "1 2 3" label="Fields to select" />
-			  <param name="delim" type="text" value="_" label="Field delimiter" help="FASTQ file." />
+			  <param name="delimiter" type="text" value="_" label="Field delimiter" help="FASTQ file." />
 		  </when>
 		  <when value="regex">
-			  <param name="regex" type="text" default="(\\w*).*(samp\\d)" help="" />
+			  <param name="pattern" type="text" help="" />
 		  </when>
 	  </conditional>
 
 	<!-- NOCHIM -->
-	<param name="chimrm" type="select" multiple="false" label="Chimera removal." help="This function is a convenience interface for chimera removal" help="">
+	<param name="chimrm" type="select" multiple="false" label="Chimera removal." help="This function is a convenience interface for chimera removal">
 		<option value="FALSE">Do not run chimera removal</option>
-		<option value="consensus">DEFAULT: The samples in the sequence table are all pooled together for bimera identification</option>
+		<option value="consensus" selected="true">DEFAULT: The samples in the sequence table are all pooled together for bimera identification</option>
 		<option value="pooled">The samples in a sequence table are independently checked for bimeras, and a consensus decision on each sequence variant is made</option>
 		<option value="per-sample">The samples in a sequence table are independently checked for bimeras, and sequence variants are removed (zeroed-out) from samples independently </option>
 	</param>
@@ -142,8 +147,8 @@ dada2.R
 	<section name="adv" title="Advanced Options" expanded="false">
 		<param name="LEARN_READS_N" optional="true" type="integer" value="1000000" label="Number of reads to learn error from" help="Default 1e6. The minimum number of reads to use for error rate learning. Samples are read into memory until at least this number of reads has been reached, or all provided samples have been read in."/>
 		<param name="OMEGA_A" optional="true" type="float" value="1e-40" label="Omega A" help="This parameter sets the threshold for when DADA2 calls unique sequences significantly overabundant, and therefore creates a new cluster with that sequence as the center. The default value is 1e-40, which is a conservative setting to avoid making false positive inferences, but which comes at the cost of reducing the ability to identify some rare variants."/>
-		<param name="USE_QUALS" optional="true" type="boolean" value="true" label="Use Quality Info" help="If TRUE, the dada(...) error model takes into account the consensus quality score of the dereplicated unique sequences. If FALSE, quality scores are ignored. The default is TRUE, however if applying DADA2 to pyrosequenced data it is recommended to set USE_QUALS to FALSE, as quality scores are not informative about substitution error rates in pyrosequencing." />
-		<param name="USE_KMERS" optional="true" type="boolean" value="true" label="Use Kmers" help="If TRUE, a 5-mer distance screen is performed prior to performing each pairwise alignment, and if the 5mer-distance is greater than KDIST_CUTOFF, no alignment is performed. TRUE by default." />
+		<param name="USE_QUALS" optional="true" type="boolean" checked="true" label="Use Quality Info" help="If TRUE, the dada(...) error model takes into account the consensus quality score of the dereplicated unique sequences. If FALSE, quality scores are ignored. The default is TRUE, however if applying DADA2 to pyrosequenced data it is recommended to set USE_QUALS to FALSE, as quality scores are not informative about substitution error rates in pyrosequencing." />
+		<param name="USE_KMERS" optional="true" type="boolean" checked="true" label="Use Kmers" help="If TRUE, a 5-mer distance screen is performed prior to performing each pairwise alignment, and if the 5mer-distance is greater than KDIST_CUTOFF, no alignment is performed. TRUE by default." />
 		<param name="KDIST_CUTOFF" optional="true" type="float" value="0.42" label="Kdist Cutoff" help="The default value of 0.42 was chosen to screen pairs of sequences that differ by greater 10 percent, and was calibrated on Illumina sequenced 16S amplicon data. The assumption is that sequences that differ by such a large amount cannot be linked by amplicon errors (i.e. if you sequence one, you won`t get a read of other) and so careful (and costly) alignment is unnecessary." />
 		<param name="BAND_SIZE" optional="true" type="integer" value="16" label="Band Size" help="When set, banded Needleman-Wunsch alignments are performed. Banding restricts the net cumulative number of insertion of one sequence relative to the other. The default value of BAND_SIZE is 16. If DADA is applied to marker genes with high rates of indels, such as the ITS region in fungi, the BAND_SIZE parameter should be increased. Setting BAND_SIZE to a negative number turns off banding (i.e. full Needleman-Wunsch)." />
 		<param name="SCORE_MATRIX" optional="true" type="file" label="Score Matrix" help="The path to the score matrix for the Needleman-Wunsch alignment. This is a 4x4 matrix as no ambiguous nucleotides are allowed. Default is nuc44: -4 for mismatches, +5 for matches."/>
@@ -156,10 +161,11 @@ dada2.R
 	</section>
 </inputs>
   <outputs>
-	<data format= "tsv" label="" name="asv_out" />
+	<data format= "tabular" label="dada2_asv_matrix" name="asv_out" />
   </outputs>
   <help><![CDATA[TODO: Write help]]></help>
   <citations>
+	  <citation type="doi">10.1038/nmeth.3869</citation>
 	  <citation type="bibtex">
 		  @misc{githubGeneLab_DADA2_Paired_Pipeline,
 		  author = {Erikson, Christian},

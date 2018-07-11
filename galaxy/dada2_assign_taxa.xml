@@ -1,12 +1,12 @@
-<tool id="dada2_assign_taxa" name="Assign Taxaonomic information to from a ASV file" version="0.1.0">
+<tool id="dada2_assign_taxa" name="DADA2 Taxaonomic Assignment" version="0.1.0">
     <requirements>
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
-		dada_assign_taxa.R 
+		dada2_assign_taxa.R 
 		$asv
 		$taxa_tsv
 		-t $taxa_train
-		#if $species_train is not None;
+		#if $species_train is not None:
 			-s $species_train
 		#end if
 		--minBoot $minboot
@@ -14,15 +14,15 @@
 		
     ]]></command>
     <inputs>
-		<param type="data" name="asv" format="tsv" label="ASV Table" help="ASV table from DADA2" />
-        <param type="data" name="taxa_train" format="fa,fa.gz,fasta,fasta.gz" />
-		<param type="data" optional="true" name="species_train" format="fa,fa.gz,fasta,fasta.gz" />
+		<param type="data" name="asv" format="tabular" label="ASV Table" help="ASV table from DADA2" />
+		<param type="data" name="taxa_train" format="fasta,fasta.gz" />
+		<param type="data" optional="true" name="species_train" format="fasta,fasta.gz" />
 		<param name="minboot" type="integer" value="50" />
-		<param name="tryrc" type="boolean" value="false" />
-		<param name="allowmultiple" type="boolean" value="false" />
+		<param name="tryrc" type="boolean" checked="false" />
+		<param name="allowmultiple" type="boolean" checked="false" />
     </inputs>
     <outputs>
-		<data name="taxa_tsv" format="tsv" />
+		<data name="taxa_tsv" label="dada2_taxaonomic_matrix" format="tabular" />
     </outputs>
     <help><![CDATA[
   asv_table             Name of (or path to) the ASV table output from DADA2.
