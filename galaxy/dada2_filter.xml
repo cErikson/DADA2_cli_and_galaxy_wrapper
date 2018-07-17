@@ -37,9 +37,9 @@
 		-R $sample_names.pattern
 		#end if 
 		
-		"${'-q'+ " ".join([str($var.truncQ) for $var in $rep_truncQ] if $rep_truncQ is not None else}
-		$rep_truncQ
-		
+		#if $rep_truncQ and $rep_truncQ != None:
+		${'-q '+ " ".join([str($var.truncQ) for $var in $rep_truncQ]) if $rep_truncQ is not None else ''}
+		#end if
 		
     ]]></command>
     <inputs>
@@ -79,7 +79,7 @@
 			</when>
 		</conditional>
 		
-		<repeat min="0" max="2" name="rep_truncq" title="Truncate Quality">
+		<repeat min="0" max="2" name="rep_truncQ" title="Truncate Quality">
 			<param argument="--truncQ" label="Truncate Quality" help="(Optional). Default 2. Truncate reads at the first instance of a quality score less than or equal to truncQ." name="truncQ" type="integer" value="2" min="0" max="40" />
 		</repeat>
 		
@@ -112,12 +112,9 @@
 		</repeat>
     </inputs>
     <outputs>
-		<collection name="filtered_R1" type="list" label="${tool.name} on ${on_string}: description">
-			<discover_datasets pattern=".*R1-filtered.fastq.gz"  visible="true" format="fastqsanger"/>
-		</collection>
-		<collection name="filtered_R2" type="list" label="${tool.name} on ${on_string}: description">
+		<collection name="filtered_R1" type="list" label="{tool.name} on ${on_string}" structured_like="fwd_fq" inherit_format="true" />
+		<collection name="filtered_R2" type="list" label="{tool.name} on ${on_string}" structured_like="rev_fq" inherit_format="true">
 			<filter> single_or_paired['opts'] == "paired" or single_or_paired['opts'] == "paired_collection" </filter>
-			<discover_datasets pattern=".*R2-filtered.fastq.gz"  visible="true" format="fastqsanger"/>
 		</collection>
     </outputs>
     <help><![CDATA[

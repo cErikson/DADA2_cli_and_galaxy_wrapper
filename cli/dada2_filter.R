@@ -15,7 +15,7 @@ library(argparse)
 # Initialize argument parser
 parser <- ArgumentParser(description='A Command line wrapper for DADA2.', epilog='Note: When filtering paired reads... If a length 1 vector is provided, the same parameter value is used for the forward and reverse reads. If a length 2 vector is provided, the first value is used for the forward reads, and the second for the reverse reads')
 
-parser$add_argument("-p","--prefix",type="character",default='dada2-filter_' ,help="Filtered file name prefix.")
+parser$add_argument("-p","--prefix",type="character",default='' ,help="Filtered file name prefix.")
 parser$add_argument("-f","--fwd", nargs='+', type="character",help="Name/path to fastq or fastq.gz files for single end sequencing or forward reads if paired end sequencing")
 parser$add_argument("-r","--rev", nargs='+', type="character",default=FALSE,help="Name/path to fastq or fastq.gz files for reverse reads if paired end sequencing")
 parser$add_argument("-s","--samp_fields", nargs='+', type="integer", default=FALSE, help="The fields in the file name that should be used for sample names.")
@@ -92,7 +92,7 @@ if (any(args$rev != F)){
 	}
 } else {
 		write('Filtering reads',stderr())
-		filtFs = file.path( 'data/filtered', paste0(study.name,sample.names, "_R1-filtered.fastq.gz"))
+		filtFs = file.path( paste0(study.name,sample.names, "_R1-filtered.fastq.gz"))
 		out = filterAndTrim(fnFs, filtFs, 
 							truncQ = as.numeric(args$truncQ), truncLen = as.numeric(args$truncLen) , trimLeft = as.numeric(args$trimLeft), maxLen = as.numeric(args$maxLen), minLen = as.numeric(args$minLen),
 							maxN = as.numeric(args$maxN), minQ = as.numeric(args$minQ), maxEE = as.numeric(args$maxEE) , rm.phix = args$rm.phix, primer.fwd = args$primer.fwd,
