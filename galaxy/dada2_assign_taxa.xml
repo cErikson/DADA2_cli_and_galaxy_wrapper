@@ -67,14 +67,15 @@
                         standard output
     ]]></help>
     <citations>
+		<citation type="doi">10.1038/nmeth.3869</citation>
         <citation type="bibtex">
-@misc{githubGeneLab_DADA2_Paired_Pipeline,
-  author = {Erikson, Christian},
-  year = {2018},
-  title = {GeneLab_DADA2_Paired_Pipeline},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  url = {https://github.com/cErikson/GeneLab_DADA2_Paired_Pipeline},
-}</citation>
+		@misc{githubGeneLab_DADA2_Paired_Pipeline,
+		author = {Erikson, Christian},
+		year = {2018},
+		title = {GeneLab_DADA2_Paired_Pipeline},
+		publisher = {GitHub},
+		journal = {GitHub repository},
+		url = {https://github.com/cErikson/GeneLab_DADA2_Paired_Pipeline},
+		}</citation>
     </citations>
 </tool>

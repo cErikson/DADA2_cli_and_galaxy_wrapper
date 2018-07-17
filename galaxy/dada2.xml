@@ -4,11 +4,6 @@
   </stdio>
   <!--<version_command></version_command> -->
   <command><![CDATA[	  
-#if $single_or_paired.opts == "paired_collection":
-${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fq_input.forward), (x.name for x in $single_or_paired.fq_input.forward))))}
-&&
-${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fq_input.reverse), (x.name for x in $single_or_paired.fq_input.reverse))))}
-#end if
 #if $single_or_paired.opts == "paired":
 ${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $single_or_paired.fwd_fq), (x.name for x in $single_or_paired.fwd_fq))))}
 &&
@@ -21,10 +16,7 @@ ${'&&'.join(('ln -s {} {}'.format(gal, name) for gal,name in zip((x for x in $si
 &&
 
 dada2.R
-#if $single_or_paired.opts == "paired_collection":
--f ${' '.join(map(str, (x.name for x in $single_or_paired.fq_input.forward)))}
--r ${' '.join(map(str, (x.name for x in $single_or_paired.fq_input.reverse)))}
-#else if $single_or_paired.opts == "paired":
+#if $single_or_paired.opts == "paired":
 -f ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
 -r ${' '.join(map(str, (x.name for x in $single_or_paired.rev_fq)))}
 #else if $single_or_paired.opts == "single":
@@ -104,7 +96,6 @@ dada2.R
 		  <param name="opts" type="select" label="Is this library mate-paired?">
 			  <option value="single">Single-end</option>
 			  <option value="paired">Paired-end</option>
-			  <option value="paired_collection">Paired-end Dataset Collection</option>
 		  </param>
 		  <when value="single">
 			  <param name="fwd_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="FASTQ/FASTA file" help="FASTQ file." />
@@ -112,9 +103,6 @@ dada2.R
 		  <when value="paired">
 			  <param name="fwd_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="Mate pair 1" help="FASTQ file." />
 			  <param name="rev_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="Mate pair 2" help="FASTQ file." />
-		  </when>
-		  <when value="paired_collection">
-			  <param name="fq_input" format="fastqsanger, fastqsanger.gz" type="data_collection" collection_type="paired,list:paired" label="FASTQ Paired Dataset" help="" />
 		  </when>
 	  </conditional>
 	  
@@ -163,7 +151,7 @@ dada2.R
   <outputs>
 	<data format= "tabular" label="dada2_asv_matrix" name="asv_out" />
   </outputs>
-  <help><![CDATA[TODO: Write help]]></help>
+  <help><![CDATA[]]></help>
   <citations>
 	  <citation type="doi">10.1038/nmeth.3869</citation>
 	  <citation type="bibtex">
