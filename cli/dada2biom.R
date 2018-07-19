@@ -64,7 +64,7 @@ if(args$metadata != F){
 	} else {
 		for (x in metadata[[args$samp_col]]){
 			loc=grep(x, rownames(asv))
-			if (length(loc)>1) stop(sprintf('The name %s matched multipule asv rows in the asv table, a row that matched: %s\n',x, rownames(asv)[loc]))
+			if (length(loc)>1) stop(sprintf('The name %s matched multipule asv rows in the asv table, try -r, a row that matched: %s\n',x, rownames(asv)[loc]))
 			ord=c(ord,loc)
 			}
 		}
@@ -76,8 +76,12 @@ if(args$metadata != F){
 }
 # If the orders do not match, stop. 
 if(any(colnames(asv)!=rownames(taxa))) stop(sprintf('After sorting the ASV and TAXA a mismatch occured: \nASV:%s\nTAXA:%s\n', asv[colnames(asv)!=rownames(taxa)], taxa[colnames(asv)!=rownames(taxa)]))  # Count sequences not in same order as Taxa seq 
-if(args$metadata != F && any(!rownames(asv)!=metadata[[args$samp_col]])) stop('After sorting ASV samplename do not match Metadata sample names')
-
+if(args$metadata != F){
+	names=data.frame(asv_name=rownames(asv), meta_name=metadata[[args$samp_col]])
+	for (x in seq(nrow(names))){
+		if(!grepl(names$meta_name[x], names$asv_name[x] )) stop(sprintf('After sorting ASV sample names do not match Metadata sample names: \nASV:%s\nMETA:%s\n', names$asv_name[x], names$meta_name[x]))
+	}
+}
 # Create the biom object from data
 
 if(any(args$metadata != F)){
