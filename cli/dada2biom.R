@@ -10,6 +10,7 @@ packages = c("biom", "argparse")
 if (any(!(packages %in% installed.packages()[,"Package"]))) stop(sprintf('These packages are required: %s', packages[!(packages %in% installed.packages()[,"Package"])]))
 library("argparse")
 
+
 parser <- ArgumentParser()
 
 
@@ -35,7 +36,7 @@ taxa=read.table(args$taxa_table)
 # Check if the samp_col is numeric or text 
 if (is.na(as.numeric(args$samp_col)) && args$metadata != F){
 	if(!args$samp_col %in% colnames(metadata)){
-		write(colnames(m), stderr())
+		write(colnames(metadata), stderr())
 	 	stop('The samp_col name was not found in metadata, above names were found in the file')
 	}
 } else {
@@ -46,11 +47,9 @@ if (is.na(as.numeric(args$samp_col)) && args$metadata != F){
 if(ncol(asv)!=ncol(asv)) stop('The length of the ASV does not match the taxa')
 if(args$metadata != F && nrow(metadata)!=nrow(asv)) warning('The number of samples in the ASV does not match the metadata')
 
-# sort the input
+# sort the input to match taxa
 asv <- asv[, order(colnames(asv))]
-asv <- asv[order(rownames(asv)),]
 taxa <- taxa[order(rownames(taxa)),]
-
 
 if(args$metadata != F){
 	ord=numeric()
@@ -60,24 +59,24 @@ if(args$metadata != F){
 		for (x in metadata[[args$samp_col]]){
 			loc=which(x == asv_names)
 			if (length(loc)>1) stop(sprintf('The name %s matched multipule asv rows in the asv table, a row that matched: %s\n',x, rownames(asv)[loc]))
-			ord=c(loc, ord)
+			ord=c(ord,loc)
 		}
 	} else {
 		for (x in metadata[[args$samp_col]]){
 			loc=grep(x, rownames(asv))
 			if (length(loc)>1) stop(sprintf('The name %s matched multipule asv rows in the asv table, a row that matched: %s\n',x, rownames(asv)[loc]))
-			ord=c(loc, ord)
+			ord=c(ord,loc)
 			}
 		}
 	
 	if(any(duplicated(ord))) stop(sprintf('The metadata column did not uniquely match the sample names: %s\n',metadata[[args$samp_col]][ord[duplicated(ord)]]))
-	metadata = metadata[ ord, ]
+	asv = asv[ ord, ]
 	if(nrow(metadata)!=nrow(asv)) stop(sprintf('After selecting the metadata based on %s, the number of samples in the ASV does not match the metadata',args$samp_col))
 	
 }
 # If the orders do not match, stop. 
 if(any(colnames(asv)!=rownames(taxa))) stop(sprintf('After sorting the ASV and TAXA a mismatch occured: \nASV:%s\nTAXA:%s\n', asv[colnames(asv)!=rownames(taxa)], taxa[colnames(asv)!=rownames(taxa)]))  # Count sequences not in same order as Taxa seq 
-#if(args$metadata != F && any(rownames(asv)!=metadata[[args$samp_col]])) stop('After sorting ASV samplename do not match Metadata sample names')
+if(args$metadata != F && any(!rownames(asv)!=metadata[[args$samp_col]])) stop('After sorting ASV samplename do not match Metadata sample names')
 
 # Create the biom object from data
 
