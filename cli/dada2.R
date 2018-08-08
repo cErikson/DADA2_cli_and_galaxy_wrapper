@@ -29,8 +29,8 @@ parser$add_argument("-S","--fields_delim", type="character", default='_', help="
 parser$add_argument("-R","--samp_regex", action='store',type="character",default=FALSE,help="Regex used to create samplenames. Double escapes \\w")
 parser$add_argument("-l","--samp_list", nargs='+', action='store',type="character", default=FALSE, help="List of sample names that are in same order as the reads, can be used in combination with -R or -s")
 ##
-parser$add_argument("--LEARN_READS_N", type='integer', default=1e06, help="Default 1e6. The minimum number of reads to use for error rate learning. Samples are read into memory until at least this number of reads has been reached, or all provided samples have been read in.")
-parser$add_argument("--OMEGA_A", type='double', default=1e-40, help="This parameter sets the threshold for when DADA2 calls unique sequences significantly overabundant, and therefore creates a new cluster with that sequence as the center. The default value is 1e-40, which is a conservative setting to avoid making false positive inferences, but which comes at the cost of reducing the ability to identify some rare variants.")
+parser$add_argument("--LEARN_READS_N", default=1e06, help="Default 1e6. The minimum number of reads to use for error rate learning. Samples are read into memory until at least this number of reads has been reached, or all provided samples have been read in.")
+parser$add_argument("--OMEGA_A", default=1e-40, help="This parameter sets the threshold for when DADA2 calls unique sequences significantly overabundant, and therefore creates a new cluster with that sequence as the center. The default value is 1e-40, which is a conservative setting to avoid making false positive inferences, but which comes at the cost of reducing the ability to identify some rare variants.")
 parser$add_argument("--USE_QUALS", type='logical', default='TRUE', help="If TRUE, the dada(...) error model takes into account the consensus quality score of the dereplicated unique sequences. If FALSE, quality scores are ignored. The default is TRUE, however if applying DADA2 to pyrosequenced data it is recommended to set USE_QUALS to FALSE, as quality scores are not informative about substitution error rates in pyrosequencing.")
 parser$add_argument("--USE_KMERS", type='logical', default='TRUE', help="If TRUE, a 5-mer distance screen is performed prior to performing each pairwise alignment, and if the 5mer-distance is greater than KDIST_CUTOFF, no alignment is performed. TRUE by default.")
 parser$add_argument('--KDIST_CUTOFF', type='double', default=0.42, help='The default value of 0.42 was chosen to screen pairs of sequences that differ by greater 10 percent, and was calibrated on Illumina sequenced 16S amplicon data. The assumption is that sequences that differ by such a large amount cannot be linked by amplicon errors (i.e. if you sequence one, you won`t get a read of other) and so careful (and costly) alignment is unnecessary.')
@@ -102,7 +102,7 @@ if (!all(!duplicated(sample.names))){
 }
 
 ##### SETUP_DADA #####
-setDadaOpt(OMEGA_A=args$OMEGA_A, USE_QUALS=args$USE_QUALS, USE_KMERS=args$USE_KMERS, KDIST_CUTOFF=args$KDIST_CUTOFF,
+setDadaOpt(OMEGA_A=as.numeric(args$OMEGA_A), USE_QUALS=args$USE_QUALS, USE_KMERS=args$USE_KMERS, KDIST_CUTOFF=args$KDIST_CUTOFF,
 		   BAND_SIZE=as.numeric(args$BAND_SIZE, GAP_PENALTY=args$GAP_PENALTY, HOMOPOLYMER_GAP_PENALTY=args$HOMOPOLYMER_GAP_PENALTY,
 		   MIN_FOLD=as.numeric(args$MIN_FOLD), MIN_HAMMING=as.numeric(args$MIN_HAMMING), MAX_CLUST=as.numeric(args$MAMAX_CLUST), MAX_CONSIST=as.numeric(args$MAX_CONSIST), VERBOSE=args$VERBOSE))
 if (!is.null(args$SCORE_MATRIX)){
@@ -113,7 +113,7 @@ if (!is.null(args$SCORE_MATRIX)){
 
 # Learn error rates
 write('Learning error rates R1', stderr())
-errF = learnErrors(fnFs, nreads = args$LEARN_READS_N, multithread=TRUE, randomize=TRUE)
+errF = learnErrors(fnFs, nreads = as.numeric(args$LEARN_READS_N), multithread=TRUE, randomize=TRUE)
 #plotErrors(errF, nominalQ=TRUE)
 
 # Dereplication
@@ -128,7 +128,7 @@ dadaFs = dada(derepFs, err=errF, multithread=TRUE)
 if (any(args$rev != F)){
 	# Learn error rates
 	write('Learning error rates R2', stderr())
-	errR = learnErrors(fnRs, nreads = args$LEARN_READS_N, multithread=TRUE, randomize=TRUE)
+	errR = learnErrors(fnRs, nreads = as.numeric(args$LEARN_READS_N), multithread=TRUE, randomize=TRUE)
 	#plotErrors(errF, nominalQ=TRUE)
 	
 	# Dereplication

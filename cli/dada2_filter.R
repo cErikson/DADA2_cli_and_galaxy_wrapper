@@ -31,18 +31,20 @@ parser$add_argument("-n", "--minLen", nargs='+',default=20, help="(Optional). De
 parser$add_argument("-N", "--maxN", nargs='+',default=0, help="(Optional). Default 0. After truncation, sequences with more than maxN Ns will be discarded. Note that dada does not allow Ns.")
 parser$add_argument("-d", "--minQ", nargs='+',default=0, help="(Optional). Default 0. After truncation, reads contain a quality score less than minQ will be discarded.")
 parser$add_argument("-E", "--maxEE", nargs='+', default='Inf',  help="(Optional). Default Inf (no EE filtering). Two are needed for pairedend. vaules After truncation, reads with higher than maxEE 'expected errors' will be discarded. Expected errors are calculated from the nominal definition of the quality score: EE = sum(10^(-Q/10))")
-parser$add_argument("--rm.phix",  default=T, help="(Optional). Default TRUE. If TRUE, discard reads that match against the phiX genome, as determined by isPhiX.")
-parser$add_argument("--primer.fwd", default=NULL, help="(Optional). Default NULL. Paired-read filtering only. A character string defining the forward primer. Only allows unambiguous nucleotides. The primer will be compared to the first len(primer.fwd) nucleotides at the start of the read. If there is not an exact match, the read is filtered out. For paired reads, the reverse read is also interrogated, and if the primer is detected on the reverse read, the forward/reverse reads are swapped.")
+parser$add_argument("--rm_phix",  nargs='+',default=T, type='logical', help="(Optional). Default TRUE. If TRUE, discard reads that match against the phiX genome, as determined by isPhiX.")
+parser$add_argument("--primer_fwd", default=NULL, help="(Optional). Default NULL. Paired-read filtering only. A character string defining the forward primer. Only allows unambiguous nucleotides. The primer will be compared to the first len(primer.fwd) nucleotides at the start of the read. If there is not an exact match, the read is filtered out. For paired reads, the reverse read is also interrogated, and if the primer is detected on the reverse read, the forward/reverse reads are swapped.")
 parser$add_argument("--matchIDs",default=F, help="(Optional). Default FALSE. Paired-read filtering only. Whether to enforce matching between the id-line sequence identifiers of the forward and reverse fastq files. If TRUE, only paired reads that share id fields (see below) are output. If FALSE, no read ID checking is done. Note: matchIDs=FALSE essentially assumes matching order between forward and reverse reads. If that matched order is not present future processing steps may break (in particular mergePairs).")
-parser$add_argument("--id.sep", default='\\s', help="(Optional). Default '\\\\s' (white-space). Paired-read filtering only. The separator between fields in the id-line of the input fastq files. Passed to the strsplit.")
-parser$add_argument("--id.field", default='NULL', help="(Optional). Default NULL (automatic detection). Paired-read filtering only. The field of the id-line containing the sequence identifier. If NULL (the default) and matchIDs is TRUE, the function attempts to automatically detect the sequence identifier field under the assumption of Illumina formatted output.")
-parser$add_argument("--multithread", default=F, help="(Optional). Default is FALSE. If TRUE, input files are filtered in parallel via mclapply. If an integer is provided, it is passed to the mc.cores argument of mclapply. Note that the parallelization here is by forking, and each process is loading another fastq file into memory. If memory is an issue, execute in a clean environment and reduce the chunk size n and/or the number of threads.")
-parser$add_argument("--n_reads", default= 1e5, help="(Optional). Default 1e5. The number of records (reads) to read in and filter at any one time. This controls the peak memory requirement so that very large fastq files are supported. See FastqStreamer for details.")
+parser$add_argument("--id_sep", default='\\s', help="(Optional). Default '\\\\s' (white-space). Paired-read filtering only. The separator between fields in the id-line of the input fastq files. Passed to the strsplit.")
+parser$add_argument("--id_field", default='NULL', help="(Optional). Default NULL (automatic detection). Paired-read filtering only. The field of the id-line containing the sequence identifier. If NULL (the default) and matchIDs is TRUE, the function attempts to automatically detect the sequence identifier field under the assumption of Illumina formatted output.")
+parser$add_argument("--multithread", default=T, help="(Optional). Default is FALSE. If TRUE, input files are filtered in parallel via mclapply. If an integer is provided, it is passed to the mc.cores argument of mclapply. Note that the parallelization here is by forking, and each process is loading another fastq file into memory. If memory is an issue, execute in a clean environment and reduce the chunk size n and/or the number of threads.")
+#parser$add_argument("--n_reads", default= 1e5, help="(Optional). Default 1e5. The number of records (reads) to read in and filter at any one time. This controls the peak memory requirement so that very large fastq files are supported. See FastqStreamer for details.")
 parser$add_argument("-v", "--verbose", default= TRUE, help="((Optional). Default TRUE. Whether to output status messages.")
-
 
 args <- parser$parse_args()
 
+args$n_reads=1e5
+
+print(args)
 
 ##### FILES #####
 fnFs = sort(args$fwd) # sort for pairing files 
@@ -63,12 +65,34 @@ if (all(args$rev != F)){
 
 ##### SAMPLE_NAMES #####
 study.name = args$prefix
-sample.names=unlist(lapply(strsplit(basename(fnFs), split = '\\.'), `[[`, 1))
+
+if (any(args$samp_fields != F) && any(args$samp_list == F) && any(args$samp_regex == F)){ # EXTRACT_NAMES_FROM_READS
+	# Extract sample names, assuming filenames have format: {ds}_{resource]_{sample}_{factor}_R1-trimmed.fastq
+	sample.names = lapply(strsplit(basename(fnFs), args$fields_delim), function(x){paste(x[as.integer(args$samp_fields)],collapse = args$fields_delim)}) # grab the delimited feilds
+} else if (any(args$samp_fields == F) && any(args$samp_list == F) && any(args$samp_regex == F)){ # KEEP_FULL_NAMES
+	sample.names = basename(fnFs)
+} else if (any(args$samp_fields == F) && any(args$samp_list == F) && any(args$samp_regex != F)){ # EXTRACT_NAMES_WITH_REGEX
+	library(stringr)
+	sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_") #extract using regex
+} else if (any(args$samp_list != F)){ # GET_NAMES_FROM_LIST
+	sample.names = args$samp_list[order(args$fwd)]
+	if (any(args$samp_fields != F) && any(args$samp_regex == F)){ # SPLIT_LIST_NAMES_WITH_DELIM
+		sample.names = lapply(strsplit(args$samp_list, args$fields_delim), function(x){paste(x[as.integer(args$samp_fields)],collapse = args$fields_delim)})
+	} else if (any(args$samp_fields == F) && any(args$samp_regex != F)){ # LIST_WITH_REGEX
+		library(stringr)
+		sample.names = apply(format(str_match(basename(fnFs), args$samp_regex)[,-1]), 1, paste, collapse="_") #extract using regex
+	} else if (any(args$samp_fields != F) && any(args$samp_regex != F)){
+		stop('Can not use both regex and delimited at the same time for listed sample names')
+	} else if(any(args$samp_fields == F) && any(args$samp_list != F) && any(args$samp_regex == F)){
+		warning('Using raw names from sample list')
+	} else {
+		stop(sprintf('Invalid combination of --samp_feilds:%s, --samp_regex:%s, --samp_list:%s', args$samp_fields, args$samp_regex, args$samp_list))
+	}
+}
 
 if (!all(!duplicated(sample.names))){
 	stop(sprintf('The following Sample names are not unique: %s\n',sample.names[!duplicated(sample.names)]))
 }
-
 
 ##### FILTER #####
 # Place filtered files in filtered/ subdirectory
@@ -78,9 +102,9 @@ if (any(args$rev != F)){
 	filtRs = file.path( paste0(study.name,sample.names, "_R2-filtered.fastq.gz")) # create file names
 	out = filterAndTrim(fnFs, filtFs, fnRs, filtRs,
 						truncQ = as.numeric(args$truncQ), truncLen = as.numeric(args$truncLen) , trimLeft = as.numeric(args$trimLeft), maxLen = as.numeric(args$maxLen), minLen = as.numeric(args$minLen),
-						maxN = as.numeric(args$maxN), minQ = as.numeric(args$minQ), maxEE = as.numeric(args$maxEE) , rm.phix = args$rm.phix, primer.fwd = args$primer.fwd,
-						matchIDs = args$matchIDs, id.sep = args$id.sep, id.field = args$id.field,
-						multithread = args$multithread, n = args$n_reads, verbose = args$verbose)
+						maxN = as.numeric(args$maxN), minQ = as.numeric(args$minQ), maxEE = as.numeric(args$maxEE) , rm.phix = as.logical(args$rm_phix), primer.fwd = args$primer_fwd,
+						matchIDs = args$matchIDs, id.sep = args$id_sep, id.field = args$id_field,
+						multithread = args$multithread, n = as.numeric(args$n_reads), verbose = args$verbose)
 	#
 	exists = file.exists(filtFs) & file.exists(filtRs)
 	filtFs = filtFs[exists]
@@ -95,9 +119,9 @@ if (any(args$rev != F)){
 		filtFs = file.path( paste0(study.name,sample.names, "_R1-filtered.fastq.gz"))
 		out = filterAndTrim(fnFs, filtFs, 
 							truncQ = as.numeric(args$truncQ), truncLen = as.numeric(args$truncLen) , trimLeft = as.numeric(args$trimLeft), maxLen = as.numeric(args$maxLen), minLen = as.numeric(args$minLen),
-							maxN = as.numeric(args$maxN), minQ = as.numeric(args$minQ), maxEE = as.numeric(args$maxEE) , rm.phix = args$rm.phix, primer.fwd = args$primer.fwd,
-							matchIDs = args$matchIDs, id.sep = args$id.sep, id.field = args$id.field,
-							multithread = args$multithread, n = args$n_reads, verbose = args$verbose)
+							maxN = as.numeric(args$maxN), minQ = as.numeric(args$minQ), maxEE = as.numeric(args$maxEE) , rm.phix = as.logical(args$rm_phix), primer.fwd = args$primer_fwd,
+							matchIDs = args$matchIDs, id.sep = args$id_sep, id.field = args$id_field,
+							multithread = args$multithread, n = as.numeric(args$n_reads), verbose = args$verbose)
 		#
 		exists = file.exists(filtFs)
 		filtFs = filtFs[exists]

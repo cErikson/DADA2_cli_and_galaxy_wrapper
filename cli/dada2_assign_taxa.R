@@ -18,19 +18,22 @@ parser <- ArgumentParser()
 
 	parser$add_argument('--minBoot', default = 50, type="integer", help='(Optional). Default 50. The minimum bootstrap confidence for assigning a taxonomic level.')
 	parser$add_argument('--tryRC', default= F, type="logical", help='(Optional). Default FALSE. If TRUE, the reverse-complement of each sequences will be used for classification if it is a better match to the reference sequences than the forward sequence.')
-	parser$add_argument('--outputBootstraps', default= F, type="logical", help='(Optional). Default FALSE. If TRUE, bootstrap values will be retained in an integer matrix. A named list containing the assigned taxonomies (named "taxa") and the bootstrap values (named "boot") will be returned. Minimum bootstrap confidence filtering still takes place, to see full taxonomy set minBoot=0')
-	parser$add_argument('--taxLevels', default=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species") , help='(Optional). Default is <Kingdom Phylum Class Order Family Genus Species>. The taxonomic levels being assigned. Truncates if deeper levels not present in training fasta.')
+#	parser$add_argument('--outputBootstraps', default= F, type="logical", help='(Optional). Default FALSE. If TRUE, bootstrap values will be retained in an integer matrix. A named list containing the assigned taxonomies (named "taxa") and the bootstrap values (named "boot") will be returned. Minimum bootstrap confidence filtering still takes place, to see full taxonomy set minBoot=0')
+	parser$add_argument('--taxLevels', nargs='+', default=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species") , help='(Optional). Default is <Kingdom Phylum Class Order Family Genus Species>. The taxonomic levels being assigned. Truncates if deeper levels not present in training fasta.')
 	parser$add_argument('--allowMultiple', default= F, type="logical", help='(Optional). Default FALSE. Defines the behavior when multiple exact matches against different species are returned. By default only unambiguous identifications are return. If TRUE, a concatenated string of all exactly matched species is returned. If an integer is provided, multiple identifications up to that many are returned as a concatenated string.')
 	parser$add_argument('--multithread', default= T, type="logical", help='(Optional). Default is TRUE. If TRUE, multithreading is enabled and the number of available threads is automatically determined. If an integer is provided, the number of threads to use is set by passing the argument on to setThreadOptions.')
 	parser$add_argument('--verbose', default= T, type="logical", help='(Optional). Default FALSE. If TRUE, print status to standard output.')
 
 args = parser$parse_args()
+
+args$outputBootstraps=F
+
 if (args$species_train != F && any(!file.exists(args$species_train))) stop("The species_trainning does not exist")
 if (any(!file.exists(args$taxa_train))) stop("The taxa_trainning does not exist")
 if (any(!file.exists(args$asv_table))) stop(" The ASV_table does not exist")
 
 library(dada2)
-
+print(args)
 # Read in seqtab file
 seqtab=as.matrix(read.table(args$asv_table))
 
