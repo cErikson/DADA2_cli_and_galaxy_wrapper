@@ -38,7 +38,7 @@
                                         </sanitizer>
                                 </param>
 				<param type="text" name="samp_col" label="Sample Name Column" help="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" />
-				<param type="text" name="regex" label="ASV name extraction regex." help=" Regex to exctract names form ASV sample names and match them exactly to to metadata samp_col. Double escapes \\w and escape spaces '\ '" optional="true" />
+				<param type="text" name="regex" label="ASV name extraction regex." help=" Regex to exctract names form ASV sample names and match them exactly to to metadata samp_col. " optional="true" />
 			</when>
 			<when value="false">
 			</when>
