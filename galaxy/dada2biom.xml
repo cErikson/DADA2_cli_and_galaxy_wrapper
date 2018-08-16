@@ -5,13 +5,14 @@
         dada2biom.py
 		$asv 
 		$output
-		#if $taxa.opts:
-			-t $taxa.file
-		#if $meta.opts:
-			-s $meta.metadata
-			-d $meta.delim
-			-c $meta.samp_col 
-			-r $meta.regex
+		#if $taxa.opts == 'true':
+			-t '$taxa.file'
+		#end if
+		#if $meta.opts == 'true':
+			-s '$meta.metadata'
+			-d '$meta.delim'
+			-c '$meta.samp_col' 
+			-r '$meta.regex'
 		#end if
     ]]></command>
     <inputs>
@@ -19,7 +20,7 @@
 		<conditional name="taxa" >
 			<param name="opts" type="boolean" label="Have taxa metadata" />
 			<when value="true">
-				<param type="data" name="taxa" label="Taxa output from DADA2" format="tabular" />
+				<param type="data" name="file" label="Taxa output from DADA2" format="tabular" />
 			</when>
 			<when value="false">
 			</when>
