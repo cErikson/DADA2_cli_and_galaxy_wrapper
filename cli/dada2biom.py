@@ -53,8 +53,8 @@ if args.regex is not False:
 
 # Read ASV counts
 with open(args.asv, 'r') as fh:
-    taxa_id=[x.strip('\'\"\n') for x in fh.readline().strip().split(args.delim)]
-    counts=[[y.strip('\'\"\n') for y in x.strip().split(args.delim)] for x in fh]
+    taxa_id=[x.strip('\'\"\n') for x in fh.readline().strip().split('\t')]
+    counts=[[y.strip('\'\"\n') for y in x.strip().split('\t')] for x in fh]
     samp_id=[x.pop(0).strip('\'\"\n') for x in counts]
 counts=np.array(counts)
 if args.regex is not False:
@@ -71,14 +71,13 @@ taxa={}
 tax_lev={'Kingdom':'k__', 'Phylum':'p__', 'Class':'c__', 'Order':'o__', 'Family':'f__', 'Genus':'g__', 'Species':'s__'}
 if args.taxa is not False:
     with open(args.taxa, 'r') as fh:
-        taxa_head=[x.strip('\'\"\n') for x in fh.readline().strip().split()]  ### FIXXXXXXXXXXX
+        taxa_head=[x.strip('\'\"\n') for x in fh.readline().strip().split()]  
         for line in fh:
-            cell=[x.strip('\n\'\"') for x in line.split(args.delim)]
+            cell=[x.strip('\n\'\"') for x in line.split()]
             taxa[cell[0]]=[tax_lev[y]+x for x,y in zip(cell[1:], taxa_head)]
     try:
         obs_meta=[{'taxonomy':taxa.pop(x)} for x in taxa_id]
     except KeyError as e:
-        #pdb.set_trace()
         sys.exit('The taxonomic metadata was not found for: '+str(e)+'\n A key in the metadat is '+str(list(taxa.keys())[0])  )
     if len(taxa) is not 0:
         sys.stderr.write('After binding taxa metadata, the following entries went unused:\n'+ str(taxa.keys()) )
@@ -93,7 +92,6 @@ if args.meta is not False:
         try:
             sname=samp_head.index(args.samp_col)
         except ValueError as e:
-            #pdb.set_trace()
             sys.exit('The Sample ID column was not found in the metadata.\n'+(str(e)))
         samp_head.pop(sname)
         for line in fh:

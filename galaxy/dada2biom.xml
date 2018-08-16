@@ -3,14 +3,14 @@
     </requirements>
     <command detect_errors="exit_code"><![CDATA[
         dada2biom.py
-		$asv 
-		$output
+		'$asv' 
+		'$output'
 		#if $taxa.opts == 'true':
 			-t '$taxa.file'
 		#end if
 		#if $meta.opts == 'true':
 			-s '$meta.metadata'
-			-d '$meta.delim'
+			-d $meta.delim
 			-c '$meta.samp_col' 
 			-r '$meta.regex'
 		#end if
@@ -29,7 +29,14 @@
 			<param name="opts" type="boolean" label="Have metadata" />
 			<when value="true">
 				<param type="data" name="metadata" format="tabular" label="A TSV of metadata corasponding to the samples" />
-				<param type="text" name="delim" label="Sample metadata delimiter" help="If tabs use \\t" />
+				<param type="text" name="delim" label="Sample metadata delimiter" help="If tabs use $'\t' " >
+                                        <sanitizer>
+                                                <valid>
+                                                        <add preset="string.printable"/>
+                                                        <add value="\"/>
+                                                </valid>
+                                        </sanitizer>
+                                </param>
 				<param type="text" name="samp_col" label="Sample Name Column" help="Name or number of column in the metadata that uniquely matches part of the sample name used in the ASV" />
 				<param type="text" name="regex" label="ASV name extraction regex." help=" Regex to exctract names form ASV sample names and match them exactly to to metadata samp_col. Double escapes \\w and escape spaces '\ '" optional="true" />
 			</when>
