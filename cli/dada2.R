@@ -28,6 +28,7 @@ parser$add_argument("-s","--samp_fields", nargs='+', type="integer", default=FAL
 parser$add_argument("-S","--fields_delim", type="character", default='_', help="The field delimiter used in the file name")
 parser$add_argument("-R","--samp_regex", action='store',type="character",default=FALSE,help="Regex used to create samplenames. Double escapes \\w")
 parser$add_argument("-l","--samp_list", nargs='+', action='store',type="character", default=FALSE, help="List of sample names that are in same order as the reads, can be used in combination with -R or -s")
+parser$add_argument("--no_overlap", action='store',type="character", default=FALSE, help="Paired-end reads do not overlap")
 ##
 parser$add_argument("--LEARN_READS_N", default=1e06, help="Default 1e6. The minimum number of reads to use for error rate learning. Samples are read into memory until at least this number of reads has been reached, or all provided samples have been read in.")
 parser$add_argument("--OMEGA_A", default=1e-40, help="This parameter sets the threshold for when DADA2 calls unique sequences significantly overabundant, and therefore creates a new cluster with that sequence as the center. The default value is 1e-40, which is a conservative setting to avoid making false positive inferences, but which comes at the cost of reducing the ability to identify some rare variants.")
@@ -142,7 +143,7 @@ if (any(args$rev != F)){
 	
 	# merge pair reads
 	write('Merge pair end reads', stderr())
-	dada_reads = mergePairs(dadaFs, derepFs, dadaRs, derepRs, verbose=TRUE)
+	dada_reads = mergePairs(dadaFs, derepFs, dadaRs, derepRs, justConcatenate=as.logical($no_overlap),  verbose=TRUE)
 } else {
 	dada_reads = dadaFs
 }
