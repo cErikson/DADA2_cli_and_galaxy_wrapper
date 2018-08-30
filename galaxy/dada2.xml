@@ -19,6 +19,7 @@ dada2.R
 #if $single_or_paired.opts == "paired":
 -f ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
 -r ${' '.join(map(str, (x.name for x in $single_or_paired.rev_fq)))}
+--no_overlap $single_or_paired.no_overlap
 #else if $single_or_paired.opts == "single":
 -f ${' '.join(map(str, (x.name for x in $single_or_paired.fwd_fq)))}
 #end if 
@@ -103,6 +104,7 @@ dada2.R
 		  <when value="paired">
 			  <param name="fwd_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="Mate pair 1" help="FASTQ file." />
 			  <param name="rev_fq" type="data" format="fastqsanger, fastqsanger.gz" multiple= "true" label="Mate pair 2" help="FASTQ file." />
+			  <param name="no_overlap" type="boolean" checked="false" label="Paired end reads DO NOT overlap" help="" />
 		  </when>
 	  </conditional>
 	  
@@ -131,6 +133,7 @@ dada2.R
 		<option value="pooled">The samples in a sequence table are independently checked for bimeras, and a consensus decision on each sequence variant is made</option>
 		<option value="per-sample">The samples in a sequence table are independently checked for bimeras, and sequence variants are removed (zeroed-out) from samples independently </option>
 	</param>
+	
 	<!-- ADVANCED -->
 	<section name="adv" title="Advanced Options" expanded="false">
 		<param name="LEARN_READS_N" optional="true" type="integer" value="1000000" label="Number of reads to learn error from" help="Default 1e6. The minimum number of reads to use for error rate learning. Samples are read into memory until at least this number of reads has been reached, or all provided samples have been read in."/>

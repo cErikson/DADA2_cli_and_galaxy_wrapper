@@ -62,7 +62,7 @@ if args.regex is not False:
     for ident in samp_id:
         try:
             ext.append(rec.match(ident).groups()[0])
-        except AttributeError:
+        except:
             sys.exit('The regex `{}` failed to match `{}`'.format(rec.pattern, ident))
     samp_id=ext
 
