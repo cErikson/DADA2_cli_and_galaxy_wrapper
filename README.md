@@ -1,8 +1,5 @@
-**+===================================+**
-
 **| DADA2 for Command Line and Galaxy |**
 
-**+===================================+**
 
 # Intro
 DADA2 is useful for metagenomic studies where taxonomic information of a cell can be inferred from a variable region of the genome(i.e. 16s, ITS), that is targeted by PCR amplification and sequencing. Unlike many other programs that cluster sequence reads into clumps to deal with errors in sequencing; DADA2 infers the error patterns of the sequenced reads, then uses the information to gather reads into their most likely true sequence.
